@@ -16,6 +16,7 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(OnyxCPPTests CoreTests.cpp)
 target_link_libraries(OnyxCPPTests PRIVATE OnyxCoreLib gtest_main)
+target_include_directories(OnyxCPPTests PRIVATE ../include)
 
 include(GoogleTest)
 gtest_discover_tests(OnyxCPPTests)
