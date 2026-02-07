@@ -10,6 +10,10 @@ add_library(OnyxCoreLib
         include/types.h
         include/utils.h
         include/Fen.h
+        src/MoveGenerator.cpp
+        include/MoveGenerator.h
+        src/MagicBitboards.cpp
+        include/MagicBitboards.h
 )
 add_subdirectory(tests)
 

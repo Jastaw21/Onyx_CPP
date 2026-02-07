@@ -57,6 +57,7 @@ public:
     // occupancy
     Bitboard getBoardByPiece(const Piece piece) const{ return boards_[piece.index()]; }
     Piece pieceAtSquare(const Square square) const{ return board_[square]; }
+    Bitboard getOccupancy();
 
     // fen loading/gettting
     void loadFen(const Fen& fen);

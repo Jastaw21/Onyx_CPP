@@ -5,7 +5,7 @@
 #ifndef ONYXCPP_TYPES_H
 #define ONYXCPP_TYPES_H
 #include <cstdint>
-
+#include <string>
 
 using Square = int8_t;
 using Bitboard = uint64_t;

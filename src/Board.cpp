@@ -1,5 +1,7 @@
 #include "../include/Board.h"
 
+#include <numeric>
+
 #include "../include/Fen.h"
 #include "../include/Move.h"
 #include "../include/utils.h"
@@ -131,28 +133,32 @@ void Board::unmakeMove(const Move& move){
     halfMoves_ = lastState.halfMoves;
     fullMoves_ = lastState.fullMoves;
 
+    Square to = move.to();
+    Square from = move.from();
+    uint8_t flags = move.flags();
+
     // send the piece back
-    const auto movedPiece = board_[move.to()];
+    const auto movedPiece = board_[to];
 
     if (move.isPromotion()) {
         const auto promotedPiece = Piece(move.promotedPiece(), movedPiece.isWhite() ? White : Black);
         const auto pawnToRestore = Piece(Piece(Pawn, movedPiece.isWhite() ? White : Black));
-        setOff(promotedPiece, move.to());
-        setOn(pawnToRestore, move.from());
-    } else { movePiece(movedPiece, move.to(), move.from()); }
+        setOff(promotedPiece, to);
+        setOn(pawnToRestore, from);
+    } else { movePiece(movedPiece, to, from); }
 
     // reset the captured piece (if a normal capture)
-    if (lastState.capturedPiece.exists() && !(move.flags() & EnPassant))
-        setOn(lastState.capturedPiece, move.to());
+    if (lastState.capturedPiece.exists() && !(flags & EnPassant))
+        setOn(lastState.capturedPiece, to);
 
-    if (move.flags() & EnPassant) {
+    if (flags & EnPassant) {
         Square capturedOn = enPassantSquare_ + (movedPiece.isWhite() ? -8 : 8);
         setOn(lastState.capturedPiece, capturedOn);
     }
 
-    if (move.flags() & Castling) {
-        auto moveTo = squareToRankAndFile(move.to());
-        auto moveFrom = squareToRankAndFile(move.from());
+    if (flags & Castling) {
+        auto moveTo = squareToRankAndFile(to);
+        auto moveFrom = squareToRankAndFile(from);
         auto rookTargetFile = moveTo.file == 6 ? 5 : 3; // always moves one inside
         auto rookOriginFile = moveTo.file == 6 ? 7 : 0;
         Piece movedRook = movedPiece.isWhite() ? Piece(Rook, White) : Piece(Rook, Black);
@@ -164,6 +170,7 @@ void Board::unmakeMove(const Move& move){
     whiteToMove_ = !whiteToMove_;
 }
 
+Bitboard Board::getOccupancy(){ return std::accumulate(boards_.begin(), boards_.end(), 0ULL, std::bit_or<>()); }
 void Board::loadFen(const Fen& fen){ FromFen(fen); }
 
 Fen Board::getFen() const{

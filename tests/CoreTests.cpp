@@ -225,3 +225,14 @@ TEST(Core_MakeMove, ApplyPromotion){
     board.unmakeMove(promotionMove);
     EXPECT_EQ(board.getFen(),"r5kr/p1QP1p2/bn2pb2/2p1N1p1/1p2P3/2N4p/PPPBBPPP/2KR3R w - - 0 7");
 }
+
+TEST(Core_MakeMove, ApplyPromotionWithCapture){
+    auto board = Board("2r3kr/p1QP1p2/bn2pb2/2p1N1p1/1p2P3/1PN4p/P1PBBPPP/2KR3R w - - 1 8");
+    auto flags = MoveFlags::PromotionQueen;
+    auto promotionMove = Move(51, 58, flags);
+    board.makeMove(promotionMove);
+    EXPECT_EQ(board.getFen(), "2Q3kr/p1Q2p2/bn2pb2/2p1N1p1/1p2P3/1PN4p/P1PBBPPP/2KR3R b - - 0 8");
+
+    board.unmakeMove(promotionMove);
+    EXPECT_EQ(board.getFen(), "2r3kr/p1QP1p2/bn2pb2/2p1N1p1/1p2P3/1PN4p/P1PBBPPP/2KR3R w - - 1 8");
+}

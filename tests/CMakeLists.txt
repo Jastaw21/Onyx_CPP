@@ -14,7 +14,8 @@ set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 
-add_executable(OnyxCPPTests CoreTests.cpp)
+add_executable(OnyxCPPTests CoreTests.cpp
+        MagicBitboardTests.cpp)
 target_link_libraries(OnyxCPPTests PRIVATE OnyxCoreLib gtest_main)
 target_include_directories(OnyxCPPTests PRIVATE ../include)
 
