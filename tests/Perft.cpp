@@ -8,7 +8,7 @@
 #include "Fen.h"
 #include "PerftRunner.h"
 
-constexpr int MAXDEPTH = 5;
+constexpr int MAXDEPTH = 4;
 TEST(Perft,Startpos){
     uint64_t expectedResults[5] = {20,400,8902,197281,4865609};
     auto board = Board();

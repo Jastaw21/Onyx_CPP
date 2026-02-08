@@ -2,23 +2,25 @@
 // Created by jacks on 07/02/2026.
 //
 
-#include "../include/PerftRunner.h"
+#include "PerftRunner.h"
 
 #include <iostream>
+#include <thread>
 
-#include "../include/MoveGenerator.h"
-#include "../include/MoveList.h"
-#include "../include/Referee.h"
+#include "MoveGenerator.h"
+#include "MoveList.h"
+#include "Referee.h"
 
 uint64_t PerftRunner::RunPerft(Board& board, const int depth){
 
-    return  CountNodes(board,depth);
+    auto nodes = CountNodes(board,depth);
+    return nodes;
 
 }
 
 void PerftRunner::PerftDivide(Board& board, int depth){
 
-    uint64_t totalNodes;
+    uint64_t totalNodes = 0;
 
     auto moves = MoveList();
     MoveGenerator::GenerateMoves(board,moves);
@@ -38,6 +40,8 @@ void PerftRunner::PerftDivide(Board& board, int depth){
         board.unmakeMove(move);
     }
 
+    std::cout << "Nodes Searched: " << totalNodes << std::endl;
+
 }
 
 uint64_t PerftRunner::CountNodes(Board& board, const int depth){
@@ -48,6 +52,7 @@ uint64_t PerftRunner::CountNodes(Board& board, const int depth){
 
     auto movesInThisPosition = MoveList();
     MoveGenerator::GenerateMoves(board,movesInThisPosition);
+
 
 
     for (auto & move: movesInThisPosition) {

@@ -42,10 +42,10 @@ public:
     Board();
     explicit Board(const Fen& fen);
 
-
     // make/unmake
     void makeMove(const Move& move_);
     void unmakeMove(const Move& move);
+    void addMoveFlags(Move& move);
 
     // board state
     bool whiteToMove() const{ return whiteToMove_; }

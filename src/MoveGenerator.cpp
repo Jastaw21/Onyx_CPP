@@ -18,19 +18,22 @@ std::array<Piece,6> MoveGenerator::whitePieces = {
 
 PromotionMode MoveGenerator::promotionMode = All;
 
-void MoveGenerator::GenerateMoves(const Board& board, MoveList& moveSpan){
+void MoveGenerator::GenerateMoves(const Board& board, MoveList& moveSpan, bool capturesOnly){
+
     bool whiteToMove = board.whiteToMove();
     const Bitboard us = board.getOccupancy(whiteToMove ? White : Black);
     const Bitboard them = board.getOccupancy(whiteToMove ? Black : White);
     const Piece theirKingPiece = whiteToMove ? Piece(King, Black) : Piece(King,White);
     const Bitboard theirKing = board.getBoardByPiece(theirKingPiece);
-    generateBasicMoves(board, moveSpan, us, them, theirKing);
-    generatePawnMoves(board,moveSpan,us, them, theirKing);
-    if (board.castlingRights() == 0) return;
+    generateBasicMoves(board, moveSpan, us, them, theirKing, capturesOnly);
+    generatePawnMoves(board,moveSpan,us, them, theirKing, capturesOnly);
+    if (board.castlingRights() == 0  || capturesOnly) return;
     addCastlingmoves(board,moveSpan,us, them);
 }
 
-void MoveGenerator::generateBasicMoves(const Board& board, MoveList& moveSpan, const Bitboard us, const Bitboard them, const Bitboard theirKing){
+
+void MoveGenerator::generateBasicMoves(const Board& board, MoveList& moveSpan, const Bitboard us, const Bitboard them, const Bitboard theirKing, bool
+                                       capturesOnly){
 
     for (const auto piece: board.whiteToMove() ? whitePieces : blackPieces) {
         if (piece.type() == Pawn) continue;
@@ -41,6 +44,8 @@ void MoveGenerator::generateBasicMoves(const Board& board, MoveList& moveSpan, c
             Bitboard movesFromHere = MagicBitboards::getMoves(piece, from, us | them);
             movesFromHere &= ~us; // can't go to own squares
             movesFromHere &= ~theirKing; // can't attack their king
+
+            if (capturesOnly) movesFromHere &= them;
 
             // turn the move bitboard into actual moves
             while (movesFromHere) {
@@ -57,7 +62,7 @@ void MoveGenerator::generateBasicMoves(const Board& board, MoveList& moveSpan, c
     }
 }
 
-void MoveGenerator::generatePawnMoves(const Board& board, MoveList& moveSpan, const Bitboard us, Bitboard them, const Bitboard theirKing){
+void MoveGenerator::generatePawnMoves(const Board& board, MoveList& moveSpan, const Bitboard us, Bitboard them, const Bitboard theirKing, bool capturesOnly){
     const bool isWhite = board.whiteToMove();
     const auto pawn = isWhite ? Piece(Pawn, White) : Piece(Pawn, Black);
 
@@ -75,6 +80,8 @@ void MoveGenerator::generatePawnMoves(const Board& board, MoveList& moveSpan, co
         attacks &= them; // obviously, attacks can only happen on opponent squares or the ep square
         attacks &= ~theirKing; // cant attack their king
         pushesFromHere |= attacks;
+
+        if (capturesOnly) pushesFromHere &= them;
 
         // turn the move bitboard into actual moves
         while (pushesFromHere) {

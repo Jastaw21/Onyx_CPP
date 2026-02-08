@@ -17,12 +17,12 @@ enum PromotionMode{
 class MoveGenerator {
 
 public:
-    static void GenerateMoves(const Board& board, MoveList& moveSpan);
+    static void GenerateMoves(const Board& board, MoveList& moveSpan, bool capturesOnly = false);
     static PromotionMode promotionMode;
 
 private:
-    static void generateBasicMoves(const Board& board, MoveList& moveSpan, Bitboard us, Bitboard them, Bitboard theirKing);
-    static void generatePawnMoves(const Board& board, MoveList& moveSpan, Bitboard us, Bitboard them, Bitboard theirKing);
+    static void generateBasicMoves(const Board& board, MoveList& moveSpan, Bitboard us, Bitboard them, Bitboard theirKing, bool capturesOnly = false);
+    static void generatePawnMoves(const Board& board, MoveList& moveSpan, Bitboard us, Bitboard them, Bitboard theirKing, bool capturesOnly = false);
     static void addCastlingmoves(const Board& board, MoveList& moveSpan, Bitboard us, Bitboard them);
 
     static  std::array<Piece,6> whitePieces ;

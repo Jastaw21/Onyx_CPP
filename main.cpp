@@ -1,15 +1,29 @@
+#include <iostream>
+
+#include "CLIBot.h"
 #include "include/Fen.h"
 #include "include/PerftRunner.h"
 
 int main(){
+    CliBot engine;
+    UCIParser parser;
 
-    auto board = Board(FenHelpers::KiwiPeteFen);
-    auto e5g6 = moveFromNotation("e5g6");
-    board.makeMove(e5g6);
-    auto b6a4 = moveFromNotation("b6a4");
-    board.makeMove(b6a4);
+    std::string line;
 
-    auto g6h8 = moveFromNotation("g6h8");
-    board.makeMove(g6h8);
-    PerftRunner::PerftDivide(board,1    );
+    // UCI engines read commands line-by-line from stdin
+    while (std::getline(std::cin, line)) {
+        if (line.empty())
+            continue;
+
+        auto cmd = parser.parse(line);
+        if (cmd.has_value()) {
+            engine.HandleCommand(cmd.value());
+
+            // Optional: break on quit
+            if (std::holds_alternative<QuitCommand>(cmd.value()))
+                break;
+        }
+    }
+
+    return 0;
 }

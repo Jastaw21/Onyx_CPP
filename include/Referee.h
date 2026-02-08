@@ -6,6 +6,7 @@
 #define ONYXCPP_REFEREE_H
 #include "Board.h"
 #include "Move.h"
+#include "SearchWorker.h"
 
 class Referee {
 public:
@@ -14,6 +15,7 @@ public:
     static bool MoveIsLegal(Board& board, Move move);
     static bool IsInCheck(Board& board, bool forWhite);
     static bool SquareAttacked(Square square, const Board& board, bool byWhite);
+    static bool isDraw(const Board& board){return false;}
 
 private:
 
