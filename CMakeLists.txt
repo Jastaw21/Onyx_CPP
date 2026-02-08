@@ -14,8 +14,18 @@ add_library(OnyxCoreLib
         include/MoveGenerator.h
         src/MagicBitboards.cpp
         include/MagicBitboards.h
+        src/Piece.cpp
+        include/MoveList.h
+        include/PerftRunner.h
+        src/PerftRunner.cpp
+        src/Referee.cpp
+        include/Referee.h
 )
 add_subdirectory(tests)
+target_include_directories(OnyxCoreLib
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
 add_executable(OnyxCPP main.cpp)
 target_link_libraries(OnyxCPP OnyxCoreLib)

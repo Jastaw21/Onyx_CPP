@@ -7,6 +7,8 @@
 #include <cstdint>
 
 #include "types.h"
+#include "Piece.h"
+#include "utils.h"
 
 // clang-format off
 enum MoveFlags : uint8_t {
@@ -30,13 +32,14 @@ private:
 public:
 
     Move() : data_(0){} // default constructor
-    Move(const Square from, const Square to, const uint8_t flags) : data_(from | (to << 6) | (flags << 12)){}
+    Move(const Square from, const Square to, const uint8_t flags) : data_(from | to << 6 | flags << 12){}
 
 
     bool isNullMove() const{ return data_ == 0; }
     uint8_t flags() const{ return data_ >> 12; }
+    void addFlag(uint8_t flag) {auto shiftedFlag = flag << 12; data_ |= shiftedFlag;}
     Square from() const{ return data_ & 0x3f; }
-    Square to() const{ return (data_ >> 6) & 0x3f; }
+    Square to() const{ return data_ >> 6 & 0x3f; }
     bool isPromotion() const{ return flags() & (PromotionQueen | PromotionBishop | PromotionKnight | PromotionRook); }
 
     PieceType promotedPiece() const{
@@ -51,6 +54,8 @@ public:
             return Rook;
         return NoType;
     }
+
+    bool operator==(const Move& other) const{return other.data_ == this->data_; }
 };
 
 

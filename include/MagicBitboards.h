@@ -42,13 +42,17 @@ class MagicBitboards {
 
     static Bitboard getStraightMoves(Square from, Bitboard occupancy);
     static Bitboard getDiagonalMoves(Square from, Bitboard occupancy);
-    static Bitboard getPawnPushes(Square from, Bitboard occupancy, bool isWhite);
+
+    static bool wasInit;
+
 
     static bool inRange(const int rank, const int file){ return rank >= 0 && rank <= 7 && file >= 0 && file <= 7; }
 
 public:
 
     static Bitboard getMoves(struct Piece piece, Square square, Bitboard occupancy);
+    static Bitboard getPawnPushes(Square from, Bitboard occupancy, bool isWhite);
+    static Bitboard getPawnAttacks(Square from, Bitboard occupancy, bool isWhite);
     static void init();
 
 };

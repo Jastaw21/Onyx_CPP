@@ -57,7 +57,7 @@ public:
     // occupancy
     Bitboard getBoardByPiece(const Piece piece) const{ return boards_[piece.index()]; }
     Piece pieceAtSquare(const Square square) const{ return board_[square]; }
-    Bitboard getOccupancy();
+    Bitboard getOccupancy() const;
 
     // fen loading/gettting
     void loadFen(const Fen& fen);
@@ -67,6 +67,7 @@ public:
     void setOn(Piece piece, Square square);
     void setOff(Piece piece, Square square);
     void movePiece(Piece piece, Square from, Square to);
+    Bitboard getOccupancy(Colour colour) const;
 
 private:
 

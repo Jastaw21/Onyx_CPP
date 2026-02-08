@@ -145,6 +145,7 @@ Magic MagicBitboards::diagonalMagics[64];
 Bitboard MagicBitboards::knightMoves[64];
 Bitboard MagicBitboards::kingMoves[64];
 Bitboard MagicBitboards::pawnAttacks[2][64];
+bool MagicBitboards::wasInit = false;
 
 void MagicBitboards::initStraightMagics(){
     for (int square = 0; square < 64; square++) {
@@ -158,7 +159,7 @@ void MagicBitboards::initStraightMagics(){
 
         for (int i = 0; i < attacksSize; i++) {
             Bitboard possibleOccupancy = possibleOccupancyByIndex(i, magic.mask);
-            auto moves = initStraightMovesOccupancy(square, possibleOccupancy);
+            const auto moves = initStraightMovesOccupancy(square, possibleOccupancy);
 
             possibleOccupancy *= magic.magic; // apply the magic number
             possibleOccupancy >>= magic.shift; // shift it down
@@ -179,7 +180,7 @@ void MagicBitboards::initDiagonalMagics(){
 
         for (int i = 0; i < attacksSize; i++) {
             Bitboard possibleOccupancy = possibleOccupancyByIndex(i, magic.mask);
-            auto moves = initDiagonalMovesOccupancy(square, possibleOccupancy);
+            const auto moves = initDiagonalMovesOccupancy(square, possibleOccupancy);
 
             possibleOccupancy *= magic.magic; // apply the magic number
             possibleOccupancy >>= magic.shift; // shift it down
@@ -242,19 +243,17 @@ void MagicBitboards::initPawnAttacks(){
 
     for (int i = 0; i < 64; i++) {
         pawnAttacks[0][i] = 0ULL;
-        if (i <8 || i > 55) continue;
+        if (i < 8 || i > 55) continue;
 
         Bitboard possibleAttacks = 0ULL;
-        RankAndFile raf = squareToRankAndFile(i);
+        const RankAndFile raf = squareToRankAndFile(i);
 
-        if (raf.file > 0) {
-            auto newSquare = i + 7;
-            auto value = 1ULL << newSquare;
+        if (raf.file > 0) { const auto newSquare = i + 7;
+            const auto value = 1ULL << newSquare;
             possibleAttacks |= value;
         }
-        if (raf.file < 7) {
-            auto newSquare = i + 9;
-            auto value = 1ULL << newSquare;
+        if (raf.file < 7) { const auto newSquare = i + 9;
+            const auto value = 1ULL << newSquare;
             possibleAttacks |= value;
         }
 
@@ -264,19 +263,17 @@ void MagicBitboards::initPawnAttacks(){
     // black
     for (int i = 0; i < 64; i++) {
         pawnAttacks[1][i] = 0ULL;
-        if (i <8 || i > 55) continue;
+        if (i < 8 || i > 55) continue;
 
         Bitboard possibleAttacks = 0ULL;
-        RankAndFile raf = squareToRankAndFile(i);
+        const RankAndFile raf = squareToRankAndFile(i);
 
-        if (raf.file > 0) {
-            auto newSquare = i - 9;
-            auto value = 1ULL << newSquare;
+        if (raf.file > 0) { const auto newSquare = i - 9;
+            const auto value = 1ULL << newSquare;
             possibleAttacks |= value;
         }
-        if (raf.file < 7) {
-            auto newSquare = i - 7;
-            auto value = 1ULL << newSquare;
+        if (raf.file < 7) { const auto newSquare = i - 7;
+            const auto value = 1ULL << newSquare;
             possibleAttacks |= value;
         }
 
@@ -350,9 +347,8 @@ Bitboard MagicBitboards::initDiagonalMovesOccupancy(const Square square, const B
         auto newRank = raf.rank + dir.deltaR;
         auto newFile = raf.file + dir.deltaF;
 
-        while (newRank >= 0 && newRank <= 7 && newFile >= 0 && newFile <= 7) {
-            auto square = rankAndFileToSquare(newRank, newFile);
-            auto value = 1ULL << square;
+        while (newRank >= 0 && newRank <= 7 && newFile >= 0 && newFile <= 7) { const auto square = rankAndFileToSquare(newRank, newFile);
+            const auto value = 1ULL << square;
             mask |= value;
             if (value & occupancy) break;
 
@@ -395,8 +391,7 @@ Bitboard MagicBitboards::getDiagonalMask(const Square from){
         auto newRank = raf.rank + dir.deltaR;
         auto newFile = raf.file + dir.deltaF;
 
-        while (newRank >= 1 && newRank <= 6 && newFile >= 1 && newFile <= 6) {
-            auto square = rankAndFileToSquare(newRank, newFile);
+        while (newRank >= 1 && newRank <= 6 && newFile >= 1 && newFile <= 6) { const auto square = rankAndFileToSquare(newRank, newFile);
             mask |= 1ULL << square;
 
             newRank += dir.deltaR;
@@ -426,51 +421,52 @@ Bitboard MagicBitboards::getDiagonalMoves(const Square from, Bitboard occupancy)
 Bitboard MagicBitboards::getPawnPushes(const Square from, const Bitboard occupancy, const bool isWhite){
     Bitboard pushes = 0ULL;
 
-    RankAndFile raf = squareToRankAndFile(from);
-    bool canDoublepush = (isWhite && raf.rank == 1) || (!isWhite && raf.rank == 6);
+    const RankAndFile raf = squareToRankAndFile(from);
+    const bool canDoublepush = (isWhite && raf.rank == 1) || (!isWhite && raf.rank == 6);
 
-    if (isWhite && raf.rank < 7) {
-        Square targetSquare = from + 8;
-        Bitboard targetValue = 1ULL << targetSquare;
+    if (isWhite && raf.rank < 7) { const Square targetSquare = from + 8;
+        const Bitboard targetValue = 1ULL << targetSquare;
         if (!(occupancy & targetValue)) {
             pushes |= targetValue; // add the single push
 
-            if (canDoublepush) {
-                Square doublePushTarget = from + 16;
-                Bitboard doublePushTargetValue = 1ULL << doublePushTarget;
-                if (!(occupancy & doublePushTargetValue)) {
-                    pushes |= doublePushTargetValue;
-                }
+            if (canDoublepush) { const Square doublePushTarget = from + 16;
+                const Bitboard doublePushTargetValue = 1ULL << doublePushTarget;
+                if (!(occupancy & doublePushTargetValue)) { pushes |= doublePushTargetValue; }
             }
         }
     }
 
-    if ((!isWhite) && raf.rank > 0) {
-        Square targetSquare = from - 8;
-        Bitboard targetValue = 1ULL << targetSquare;
+    if (!isWhite && raf.rank > 0) { const Square targetSquare = from - 8;
+        const Bitboard targetValue = 1ULL << targetSquare;
         if (!(occupancy & targetValue)) {
             pushes |= targetValue; // add the single push
 
-            if (canDoublepush) {
-                Square doublePushTarget = from - 16;
-                Bitboard doublePushTargetValue = 1ULL << doublePushTarget;
-                if (!(occupancy & doublePushTargetValue)) {
-                    pushes |= doublePushTargetValue;
-                }
+            if (canDoublepush) { const Square doublePushTarget = from - 16;
+                const Bitboard doublePushTargetValue = 1ULL << doublePushTarget;
+                if (!(occupancy & doublePushTargetValue)) { pushes |= doublePushTargetValue; }
             }
         }
     }
     return pushes;
 }
 
+Bitboard MagicBitboards::getPawnAttacks(const Square from, Bitboard occupancy, const bool isWhite){
+    return pawnAttacks[isWhite ? 0 : 1][from];
+}
+
 Bitboard MagicBitboards::getMoves(const Piece piece, const Square square, const Bitboard occupancy){
+    if (!wasInit) {
+        init();
+        wasInit = true;
+    }
     switch (piece.type()) {
         case Knight: return knightMoves[square];
         case Queen: return getStraightMoves(square, occupancy) | getDiagonalMoves(square, occupancy);
         case Rook: return getStraightMoves(square, occupancy);
         case Bishop: return getDiagonalMoves(square, occupancy);
         case King: return kingMoves[square];
-        case Pawn: return pawnAttacks[piece.isWhite() ? 0 : 1][square] | getPawnPushes(square,occupancy,piece.isWhite());
+        case Pawn: return pawnAttacks[piece.isWhite() ? 0 : 1][square] | getPawnPushes(
+                              square, occupancy, piece.isWhite());
         default: return 0ULL;
     }
 }

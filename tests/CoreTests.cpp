@@ -52,7 +52,7 @@ TEST(Core_Move, Init){
 }
 
 TEST(Core_Board, Init){
-    auto emptyBoard = Board();
+    auto emptyBoard = Board("8/8/8/8/8/8/8/8 w - - 0 1");
     Piece wp = Piece(Pawn, White);
     emptyBoard.setOn(wp, 0);
     Piece pieceAtA1 = emptyBoard.pieceAtSquare(0);
@@ -197,6 +197,14 @@ TEST(Core_MakeMove, LoseCastling){
     EXPECT_EQ(board.getFen(),"r3k2r/p1ppqpb1/bn2pQp1/3PN3/1p2P3/2N4p/PPPBBPPP/R3K1R1 b Qkq - 1 1");
     board.unmakeMove(Move(7,6,0));
     EXPECT_EQ(board.getFen(),fen);
+
+
+    auto kpBoard = Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/Np2P3/5Q1p/PPPBBPPP/R3K2R b KQkq - 0 1");
+    auto castlingRights = kpBoard.castlingRights();
+    auto rookMove = moveFromNotation("h8h4");
+    kpBoard.makeMove(rookMove);
+    EXPECT_FALSE(kpBoard.castlingRights() == castlingRights);
+    EXPECT_FALSE(kpBoard.castlingRights() & FenHelpers::CastlingRights::BlackKingside);
 
 
 }

@@ -11,6 +11,8 @@ enum Colour : uint8_t {
     NoColour, White, Black
 };
 
+
+
 struct Piece {
 private:
 
@@ -19,7 +21,7 @@ private:
 public:
 
     Piece() : value(0){}
-    Piece(const PieceType type, const Colour colour) : value(type | (colour << 4)){}
+    Piece(const PieceType type, const Colour colour) : value(type | colour << 4){}
     int index() const{return static_cast<int>(type()) + (isWhite() ? 0 : 6);}
 
     PieceType type() const{ return static_cast<PieceType>(value & 0x0F); }
@@ -31,6 +33,9 @@ public:
     uint8_t Value() const{ return value; }
 
     bool operator==(const Piece& other) const{ return other.value == this->value; }
+
 };
+
+
 
 #endif //ONYXCPP_PIECE_H

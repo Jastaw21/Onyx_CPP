@@ -5,7 +5,6 @@
 #ifndef ONYXCPP_FEN_H
 #define ONYXCPP_FEN_H
 #include <string>
-#include <iostream>
 #include <sstream>
 #include "types.h"
 #include "utils.h"

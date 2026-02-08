@@ -1,10 +1,10 @@
-#include "../include/Board.h"
+#include "Board.h"
 
 #include <numeric>
 
-#include "../include/Fen.h"
-#include "../include/Move.h"
-#include "../include/utils.h"
+#include "Fen.h"
+#include "Move.h"
+#include "utils.h"
 
 void Board::setOff(const Piece piece, const Square square){
     // this will currently overwrite the piece that moved there
@@ -15,6 +15,7 @@ void Board::setOff(const Piece piece, const Square square){
 Board::Board(){
     board_ = std::array<Piece, 64>{Piece()};
     boards_ = std::array<Bitboard, 12>{0ULL};
+    FromFen(FenHelpers::StartPos);
 }
 
 Board::Board(const Fen& fen){
@@ -32,8 +33,8 @@ void Board::updateCastlingRights(const Piece pieceMoved, const RankAndFile moveF
     }
     // moving a rook also loses castling rights
     if (pieceMoved.type() == Rook) {
-        bool isKingSideLoss = moveFrom.file == 7;
-        bool isQueenSideLoss = moveFrom.file == 0;
+        const bool isKingSideLoss = moveFrom.file == 7;
+        const bool isQueenSideLoss = moveFrom.file == 0;
         if (pieceMoved.colour() == White) {
             if (isKingSideLoss)
                 castlingRights_ &= ~FenHelpers::WhiteKingside;
@@ -49,14 +50,14 @@ void Board::updateCastlingRights(const Piece pieceMoved, const RankAndFile moveF
 }
 
 void Board::makeMove(const Move& move_){
-    Square moveFromSquare = move_.from();
+    const Square moveFromSquare = move_.from();
     const auto pieceMoved = board_[moveFromSquare];
 
     // detect the capture - but consider ep
     Piece pieceCaptured;
     const bool isWhite = pieceMoved.colour() == White;
     const uint8_t flags = move_.flags();
-    Square moveToSquare = move_.to();
+    const Square moveToSquare = move_.to();
     if (flags & EnPassant) {
         const Colour capturedColour = isWhite ? Black : White;
         pieceCaptured = Piece(Pawn, capturedColour);
@@ -82,8 +83,22 @@ void Board::makeMove(const Move& move_){
     }
 
     // remove the captured piece (doesn't do anything for ep)
-    if (pieceCaptured.exists() && !(flags & EnPassant))
+    if (pieceCaptured.exists() && !(flags & EnPassant)) {
         setOff(pieceCaptured, moveToSquare);
+
+        // may have lost the right to castle
+        if (pieceCaptured.type() == Rook) {
+            // lost on a rook origin square
+            if (moveToSquare == 63 || moveToSquare == 0 || moveToSquare == 7 || moveToSquare == 56) {
+                switch (moveToSquare) {
+                    case 63 : castlingRights_ &= ~FenHelpers::BlackKingside; break;
+                    case 56: castlingRights_ &= ~FenHelpers::BlackQueenside; break;
+                    case 7 : castlingRights_ &= ~FenHelpers::WhiteKingside; break;
+                    case 0: castlingRights_ &= ~FenHelpers::WhiteQueenside; break;
+                }
+            }
+        }
+    }
 
     // if is ep we have to force it to work right
     if (flags & EnPassant) {
@@ -133,9 +148,9 @@ void Board::unmakeMove(const Move& move){
     halfMoves_ = lastState.halfMoves;
     fullMoves_ = lastState.fullMoves;
 
-    Square to = move.to();
-    Square from = move.from();
-    uint8_t flags = move.flags();
+    const Square to = move.to();
+    const Square from = move.from();
+    const uint8_t flags = move.flags();
 
     // send the piece back
     const auto movedPiece = board_[to];
@@ -151,17 +166,15 @@ void Board::unmakeMove(const Move& move){
     if (lastState.capturedPiece.exists() && !(flags & EnPassant))
         setOn(lastState.capturedPiece, to);
 
-    if (flags & EnPassant) {
-        Square capturedOn = enPassantSquare_ + (movedPiece.isWhite() ? -8 : 8);
+    if (flags & EnPassant) { const Square capturedOn = enPassantSquare_ + (movedPiece.isWhite() ? -8 : 8);
         setOn(lastState.capturedPiece, capturedOn);
     }
 
-    if (flags & Castling) {
-        auto moveTo = squareToRankAndFile(to);
-        auto moveFrom = squareToRankAndFile(from);
-        auto rookTargetFile = moveTo.file == 6 ? 5 : 3; // always moves one inside
-        auto rookOriginFile = moveTo.file == 6 ? 7 : 0;
-        Piece movedRook = movedPiece.isWhite() ? Piece(Rook, White) : Piece(Rook, Black);
+    if (flags & Castling) { const auto moveTo = squareToRankAndFile(to);
+        const auto moveFrom = squareToRankAndFile(from);
+        const auto rookTargetFile = moveTo.file == 6 ? 5 : 3; // always moves one inside
+        const auto rookOriginFile = moveTo.file == 6 ? 7 : 0;
+        const Piece movedRook = movedPiece.isWhite() ? Piece(Rook, White) : Piece(Rook, Black);
         setOn(movedRook, rankAndFileToSquare(moveFrom.rank, rookOriginFile));
         setOff(movedRook, rankAndFileToSquare(moveFrom.rank, rookTargetFile));
     }
@@ -170,7 +183,7 @@ void Board::unmakeMove(const Move& move){
     whiteToMove_ = !whiteToMove_;
 }
 
-Bitboard Board::getOccupancy(){ return std::accumulate(boards_.begin(), boards_.end(), 0ULL, std::bit_or<>()); }
+Bitboard Board::getOccupancy() const{ return std::accumulate(boards_.begin(), boards_.end(), 0ULL, std::bit_or<>()); }
 void Board::loadFen(const Fen& fen){ FromFen(fen); }
 
 Fen Board::getFen() const{
@@ -248,6 +261,17 @@ void Board::movePiece(const Piece piece, const Square from, const Square to){
     setOn(piece, to);
 }
 
+Bitboard Board::getOccupancy(const Colour colour) const{
+    Bitboard occupancy = 0ULL;
+    if (colour == White) {
+        for (int i = 0; i < 6; i++) { occupancy |= boards_[i]; }
+        return occupancy;
+    }
+
+    for (int i = 6; i < 12; i++) { occupancy |= boards_[i]; }
+    return occupancy;
+}
+
 void Board::FromFen(const Fen& fen){
     // reset the boards
     board_.fill(Piece());
@@ -281,6 +305,7 @@ void Board::FromFen(const Fen& fen){
         i++;
     }
 
+    whiteToMove_ = parsedFen.whiteToMove;
     enPassantSquare_ = parsedFen.enPassantSquare;
     castlingRights_ = parsedFen.castlingRights;
     halfMoves_ = parsedFen.halfMoves;
