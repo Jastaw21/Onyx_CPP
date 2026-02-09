@@ -18,7 +18,7 @@ std::array<Piece,6> MoveGenerator::whitePieces = {
 
 PromotionMode MoveGenerator::promotionMode = All;
 
-void MoveGenerator::GenerateMoves(const Board& board, MoveList& moveSpan, bool capturesOnly){
+void MoveGenerator::GenerateMoves(const Board& board, MoveList& moveSpan, const bool capturesOnly){
 
     bool whiteToMove = board.whiteToMove();
     const Bitboard us = board.getOccupancy(whiteToMove ? White : Black);
@@ -32,7 +32,7 @@ void MoveGenerator::GenerateMoves(const Board& board, MoveList& moveSpan, bool c
 }
 
 
-void MoveGenerator::generateBasicMoves(const Board& board, MoveList& moveSpan, const Bitboard us, const Bitboard them, const Bitboard theirKing, bool
+void MoveGenerator::generateBasicMoves(const Board& board, MoveList& moveSpan, const Bitboard us, const Bitboard them, const Bitboard theirKing, const bool
                                        capturesOnly){
 
     for (const auto piece: board.whiteToMove() ? whitePieces : blackPieces) {
@@ -62,7 +62,7 @@ void MoveGenerator::generateBasicMoves(const Board& board, MoveList& moveSpan, c
     }
 }
 
-void MoveGenerator::generatePawnMoves(const Board& board, MoveList& moveSpan, const Bitboard us, Bitboard them, const Bitboard theirKing, bool capturesOnly){
+void MoveGenerator::generatePawnMoves(const Board& board, MoveList& moveSpan, const Bitboard us, Bitboard them, const Bitboard theirKing, const bool capturesOnly){
     const bool isWhite = board.whiteToMove();
     const auto pawn = isWhite ? Piece(Pawn, White) : Piece(Pawn, Black);
 
@@ -115,7 +115,7 @@ void MoveGenerator::generatePawnMoves(const Board& board, MoveList& moveSpan, co
     }
 }
 
-void MoveGenerator::addCastlingmoves(const Board& board, MoveList& moveSpan, Bitboard us, Bitboard them){
+void MoveGenerator::addCastlingmoves(const Board& board, MoveList& moveSpan, const Bitboard us, const Bitboard them){
     bool whiteToMove = board.whiteToMove();
     // no castling rights remaining
     const auto ourKingsideRights = whiteToMove ? FenHelpers::CastlingRights::WhiteKingside : FenHelpers::CastlingRights::BlackKingside;

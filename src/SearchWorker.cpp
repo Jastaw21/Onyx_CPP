@@ -13,6 +13,7 @@
 #include "Referee.h"
 
 static constexpr int INF = 30000;
+
 SearchResults SearchWorker::search(SearchOptions options){
     bestScore = -INF;
 
@@ -38,39 +39,38 @@ SearchResults SearchWorker::search(SearchOptions options){
 }
 
 
-SearchFlag SearchWorker::DoSearch(int depthRemaining, int depthFromRoot, int alpha, int beta){
-
+SearchFlag SearchWorker::DoSearch(const int depthRemaining, const int depthFromRoot, int alpha, const int beta){
     if (stopFlag)
         return SearchFlag::Abort();
 
     if (depthFromRoot > 0) {
         if (Referee::isDraw(board))
-            return SearchFlag{0,true};
+            return SearchFlag{0, true};
     }
 
     if (depthRemaining == 0) {
-        auto qEval =  Quiescence(alpha,beta,depthFromRoot);
+        auto qEval = Quiescence(alpha, beta, depthFromRoot);
         if (!qEval.completed)
             return SearchFlag::Abort();
 
         return qEval;
     }
 
-    statistics_.nodes++;
-    bool isInCheck = Referee::IsInCheck(board,board.whiteToMove());
+
+    bool isInCheck = Referee::IsInCheck(board, board.whiteToMove());
 
     auto moves = MoveList();
-    MoveGenerator::GenerateMoves(board,moves);
-
+    MoveGenerator::GenerateMoves(board, moves);
 
     int legalMoveCount = 0;
     for (auto move: moves) {
-        if (!Referee::MoveIsLegal(board,move))
+        statistics_.nodes++;
+        if (!Referee::MoveIsLegal(board, move))
             continue;
 
         legalMoveCount++;
         board.makeMove(move);
-        auto childResult = DoSearch(depthRemaining -1, depthFromRoot +1, -beta,-alpha);
+        auto childResult = DoSearch(depthRemaining - 1, depthFromRoot + 1, -beta, -alpha);
         board.unmakeMove(move);
 
         if (!childResult.completed) return SearchFlag::Abort();
@@ -78,8 +78,8 @@ SearchFlag SearchWorker::DoSearch(int depthRemaining, int depthFromRoot, int alp
         auto eval = -childResult.score;
 
         if (eval >= beta) {
-            statistics_.nodes++;
-            return SearchFlag{beta,true};
+            statistics_.betaCutoffs++;
+            return SearchFlag{beta, true};
         }
 
         if (eval > alpha) {
@@ -88,22 +88,25 @@ SearchFlag SearchWorker::DoSearch(int depthRemaining, int depthFromRoot, int alp
                 bestMove = move;
                 bestScore = eval;
             }
-
         }
     }
 
-    if (legalMoveCount >0)
-        return SearchFlag{alpha,true};
+    // got a score
+    if (legalMoveCount > 0)
+        return SearchFlag{alpha, true};
+
+    // no legal moves - checkmate
     if (isInCheck)
-        return SearchFlag{-20000 +depthFromRoot,true};
-    return SearchFlag{0,true};
+        return SearchFlag{-20000 + depthFromRoot, true};
+    // stalemate
+    return SearchFlag{0, true};
 }
 
-SearchFlag SearchWorker::Quiescence(int alpha, int beta, int depthFromRoot){
+SearchFlag SearchWorker::Quiescence(int alpha, const int beta, const int depthFromRoot){
     if (stopFlag)
         return SearchFlag::Abort();
 
-    bool isInCheck = Referee::IsInCheck(board,board.whiteToMove());
+    bool isInCheck = Referee::IsInCheck(board, board.whiteToMove());
     auto standPat = Evaluator::Evaluate(board);
 
     if (!isInCheck) {
@@ -112,20 +115,23 @@ SearchFlag SearchWorker::Quiescence(int alpha, int beta, int depthFromRoot){
         if (standPat > alpha)
             alpha = standPat;
     }
-    statistics_.nodes++;
-    statistics_.qNodes++;
+
 
     auto moves = MoveList();
-    MoveGenerator::GenerateMoves(board,moves, !isInCheck);
+    MoveGenerator::GenerateMoves(board, moves, !isInCheck);
 
     bool hasLegalMove = false;
 
-    for (const auto move : moves) {
+    for (const auto move: moves) {
+
+        statistics_.nodes++;
+        statistics_.qNodes++;
+
         if (!Referee::MoveIsLegal(board, move))
             continue;
         hasLegalMove = true;
         board.makeMove(move);
-        auto child = Quiescence(-beta,-alpha, depthFromRoot+1);
+        auto child = Quiescence(-beta, -alpha, depthFromRoot + 1);
         board.unmakeMove(move);
         if (!child.completed)
             return SearchFlag::Abort();
@@ -133,19 +139,17 @@ SearchFlag SearchWorker::Quiescence(int alpha, int beta, int depthFromRoot){
 
         if (score >= beta) {
             statistics_.betaCutoffs++;
-            return SearchFlag{beta,true};
+            return SearchFlag{beta, true};
         }
 
-        if (score > alpha) {
-            alpha =score;
-        }
+        if (score > alpha) { alpha = score; }
     }
     if (isInCheck && !hasLegalMove)
         return SearchFlag{-20000 + depthFromRoot, true};
-    return SearchFlag{alpha,true};
-
+    return SearchFlag{alpha, true};
 }
 
-void SearchWorker::printInfo(int depth, int bestScore, Move move){
-    std::cout << "info depth " << depth << " multipv 1 " << "score cp " << bestScore << " nodes " << statistics_.nodes << std::endl;
+void SearchWorker::printInfo(const int depth, const int bestScore, Move move){
+    std::cout << "info depth " << depth << " multipv 1 " << "score cp " << bestScore << " nodes " << statistics_.nodes
+            << " beta cutoff " << statistics_.betaCutoffs << std::endl;
 }

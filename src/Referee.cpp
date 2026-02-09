@@ -63,7 +63,7 @@ bool Referee::MoveIsLegal(Board& board, const Move move){
 }
 
 
-bool Referee::IsInCheck(Board& board, bool forWhite){
+bool Referee::IsInCheck(Board& board, const bool forWhite){
 
     const Piece relevantKing = forWhite ? Piece(King, White) : Piece(King,Black);
     const Bitboard kingBoard= board.getBoardByPiece(relevantKing);

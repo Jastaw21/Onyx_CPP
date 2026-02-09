@@ -18,7 +18,7 @@ uint64_t PerftRunner::RunPerft(Board& board, const int depth){
 
 }
 
-void PerftRunner::PerftDivide(Board& board, int depth){
+void PerftRunner::PerftDivide(Board& board, const int depth){
 
     uint64_t totalNodes = 0;
 

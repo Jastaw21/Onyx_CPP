@@ -124,9 +124,9 @@ bool Tokeniser::isPosition(const std::string& token){
 
 
 bool Tokeniser::isIntLiteral(const std::string& token){
-    return std::ranges::all_of(token, [](char c) { return std::isdigit(static_cast<unsigned char>(c)); });
+    return std::ranges::all_of(token, [](const char c) { return std::isdigit(static_cast<unsigned char>(c)); });
 }
 
 bool Tokeniser::isStringLiteral(const std::string& token){
-    return std::ranges::all_of(token, [](char c) { return std::isalpha(static_cast<unsigned char>(c)); });
+    return std::ranges::all_of(token, [](const char c) { return std::isalpha(static_cast<unsigned char>(c)); });
 }

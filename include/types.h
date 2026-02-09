@@ -12,4 +12,12 @@ using Bitboard = uint64_t;
 using Fen = std::string;
 using ZobristHash = uint64_t;
 
+// score paid and piecesquaretable
+struct sp {
+    int start;
+    int end;
+};
+
+using Psq =  std::array<sp,64>;
+
 #endif //ONYXCPP_TYPES_H
