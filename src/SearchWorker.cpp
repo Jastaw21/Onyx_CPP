@@ -23,6 +23,7 @@ SearchResults SearchWorker::search(SearchOptions options){
 
     SearchResults lastCompleted{bestScore, bestMove};
 
+    timer.start();
     for (int depth = 1; depth <= options.depthLimit; ++depth) {
         auto result = DoSearch(depth, 0, -INF, INF);
 
@@ -32,7 +33,7 @@ SearchResults SearchWorker::search(SearchOptions options){
         bestScore = result.score;
         lastCompleted = {bestScore, bestMove};
 
-        printInfo(depth, bestScore, bestMove);
+        printInfo(depth, bestScore, bestMove, timer.elapsedMs());
     }
 
     return lastCompleted;
@@ -149,7 +150,8 @@ SearchFlag SearchWorker::Quiescence(int alpha, const int beta, const int depthFr
     return SearchFlag{alpha, true};
 }
 
-void SearchWorker::printInfo(const int depth, const int bestScore, Move move){
+void SearchWorker::printInfo(const int depth, const int bestScore, Move move, uint64_t elpasedMs){
     std::cout << "info depth " << depth << " multipv 1 " << "score cp " << bestScore << " nodes " << statistics_.nodes
+    << " nps " << (statistics_.nodes / elpasedMs) * 1000.0 << " time " << elpasedMs
             << " beta cutoff " << statistics_.betaCutoffs << std::endl;
 }

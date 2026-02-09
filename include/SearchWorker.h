@@ -7,7 +7,7 @@
 #include "Board.h"
 #include "Move.h"
 #include "TimeControl.h"
-
+#include "Timer.h"
 
 
 struct SearchOptions {
@@ -48,9 +48,11 @@ private:
     Move bestMove;
     int bestScore;
 
+    Timer timer;
+
     SearchFlag DoSearch(int depthRemaining, int depthFromRoot, int alpha, int beta);
     SearchFlag Quiescence(int alpha, int beta, int depthFromRoot);
-    void printInfo(int depth, int bestScore, Move move);
+    void printInfo(int depth, int bestScore, Move move, uint64_t elpasedMs);
 
 };
 

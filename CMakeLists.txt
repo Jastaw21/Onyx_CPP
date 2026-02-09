@@ -31,6 +31,9 @@ add_library(OnyxCoreLib
         include/TimeControl.h
         src/Evaluator.cpp
         include/Evaluator.h
+        include/Timer.h
+        src/SearchController.cpp
+        include/SearchController.h
 )
 add_subdirectory(tests)
 target_include_directories(OnyxCoreLib
