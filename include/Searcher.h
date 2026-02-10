@@ -10,8 +10,9 @@
 #include "CancellationToken.h"
 #include "Move.h"
 #include "TimeControl.h"
-
-
+static constexpr int MAX_PLY = 64;
+using PVTable = Move[MAX_PLY][MAX_PLY];
+using PVLength = int[MAX_PLY];
 
 struct SearchOptions {
     int depthLimit;
@@ -28,7 +29,9 @@ struct SearchFlag {
     static SearchFlag Abort(){return SearchFlag{0,false};}
 };
 
-
+struct SearchInfo {
+    int depth; int bestScore; uint32_t Move; Statistics stats; PVTable *table; PVLength *pvLength ;
+};
 class Searcher {
 public:
     Searcher(Board& board, CancellationToken& token, InfoCallback callback = nullptr) : board(board), token_(token), callback_(callback) {}
@@ -49,6 +52,10 @@ private:
     SearchFlag Quiescence(int alpha, int beta, int depthFromRoot);
     void printInfo(int depth, int bestScore, Move move, uint64_t elapsed) const;
 
+
+
+    Move pvTable[MAX_PLY][MAX_PLY]{{Move()}};
+    PVLength pvLength{};
 };
 
 

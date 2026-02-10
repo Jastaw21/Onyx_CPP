@@ -11,6 +11,9 @@ struct TimeControl {
     int winc;
     int binc;
     int movestogo;
+    bool isTimed(){
+        return wtime >0 || btime >0;
+    }
 };
 
 #endif //ONYXCPP_TIMECONTROL_H

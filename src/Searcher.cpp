@@ -24,6 +24,7 @@ SearchResults Searcher::search(const SearchOptions& options){
     SearchResults lastCompleted{bestScore, bestMove};
 
     for (int depth = 1; depth <= options.depthLimit; ++depth) {
+        pvLength[0] = 0;
         const auto result = DoSearch(depth, 0, -INF, INF);
 
         if (!result.completed)
@@ -33,7 +34,7 @@ SearchResults Searcher::search(const SearchOptions& options){
         lastCompleted = {bestScore, bestMove};
 
         if (callback_) {
-            callback_(SearchInfo{depth,bestScore,bestMove.Data(),statistics_});
+            callback_(SearchInfo{depth,bestScore,bestMove.Data(),statistics_,&pvTable,&pvLength});
         }
     }
     return lastCompleted;
@@ -84,6 +85,13 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
 
         if (eval > alpha) {
             alpha = eval;
+            pvTable[depthFromRoot][0] = move;
+            for (int i = 0; i < pvLength[depthFromRoot + 1]; ++i)
+                pvTable[depthFromRoot][i + 1] = pvTable[depthFromRoot + 1][i];
+
+            pvLength[depthFromRoot] = pvLength[depthFromRoot + 1] + 1;
+
+
             if (depthFromRoot == 0) {
                 bestMove = move;
                 bestScore = eval;
