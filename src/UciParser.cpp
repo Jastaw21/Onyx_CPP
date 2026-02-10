@@ -119,16 +119,16 @@ std::optional<Command> UCIParser::parseGo(){
             }
 
             case TokenType::BTIME: {
-                if (peek().type == TokenType::INT_LITERAL) { tc.wtime = std::stoi(consume().value); }
+                if (peek().type == TokenType::INT_LITERAL) { tc.btime = std::stoi(consume().value); }
                 break;
             }
 
             case TokenType::WINC: {
-                if (peek().type == TokenType::INT_LITERAL) { tc.wtime = std::stoi(consume().value); }
+                if (peek().type == TokenType::INT_LITERAL) { tc.winc = std::stoi(consume().value); }
                 break;
             }
             case TokenType::BINC: {
-                if (peek().type == TokenType::INT_LITERAL) { tc.wtime = std::stoi(consume().value); }
+                if (peek().type == TokenType::INT_LITERAL) { tc.binc = std::stoi(consume().value); }
                 break;
             }
         }
