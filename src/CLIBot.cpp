@@ -8,6 +8,10 @@
 
 #include "PerftRunner.h"
 
+void CliBot::onDepthComplete(SearchInfo& info){
+
+}
+
 void CliBot::onUCI(const UCICommand&){
     std::cout << "id name " << ID << std::endl;
     std::cout << "id author JackWeddell" << std::endl;
@@ -16,27 +20,31 @@ void CliBot::onUCI(const UCICommand&){
 
 void CliBot::onGo(const GoCommand& command){
     if (command.isPerft)
-        PerftRunner::PerftDivide(worker_.GetBoard(),command.depth);
+        PerftRunner::PerftDivide(board_,command.depth);
     else {
         SearchOptions opts;
         opts.depthLimit = command.depth;
         opts.tc = command.timeControl;
-        auto result = worker_.search(opts);
-        std::cout << "bestmove " << moveToNotation(result.bestMove) << std::endl;
+        controller_.start(opts);
     }
 }
-void CliBot::onStop(const StopCommand&){}
-void CliBot::onQuit(const QuitCommand&){}
+void CliBot::onStop(const StopCommand&){
+    controller_.stop();
+}
+void CliBot::onQuit(const QuitCommand&){
+    controller_.stop();
+    std::exit(0);
+}
 void CliBot::onIsReady(const IsReadyCommand&){
     std::cout << "readyok" << std::endl;
 }
 void CliBot::onPosition(const PositionCommand& command){
-    worker_.GetBoard().loadFen(command.fen);
+    board_.loadFen(command.fen);
 
     for (auto& move : command.moves) {
         Move copyMove = moveFromNotation(move);
-        worker_.GetBoard().addMoveFlags(copyMove);
-        worker_.GetBoard().makeMove(copyMove);
+        board_.addMoveFlags(copyMove);
+        board_.makeMove(copyMove);
     }
 }
 void CliBot::onNewGame(const NewGameCommand&){}

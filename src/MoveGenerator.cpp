@@ -20,7 +20,7 @@ PromotionMode MoveGenerator::promotionMode = All;
 
 void MoveGenerator::GenerateMoves(const Board& board, MoveList& moveSpan, const bool capturesOnly){
 
-    bool whiteToMove = board.whiteToMove();
+    const bool whiteToMove = board.whiteToMove();
     const Bitboard us = board.getOccupancy(whiteToMove ? White : Black);
     const Bitboard them = board.getOccupancy(whiteToMove ? Black : White);
     const Piece theirKingPiece = whiteToMove ? Piece(King, Black) : Piece(King,White);
@@ -116,7 +116,7 @@ void MoveGenerator::generatePawnMoves(const Board& board, MoveList& moveSpan, co
 }
 
 void MoveGenerator::addCastlingmoves(const Board& board, MoveList& moveSpan, const Bitboard us, const Bitboard them){
-    bool whiteToMove = board.whiteToMove();
+    const bool whiteToMove = board.whiteToMove();
     // no castling rights remaining
     const auto ourKingsideRights = whiteToMove ? FenHelpers::CastlingRights::WhiteKingside : FenHelpers::CastlingRights::BlackKingside;
     const auto ourQueensideRights= whiteToMove ? FenHelpers::CastlingRights::WhiteQueenside : FenHelpers::CastlingRights::BlackQueenside;
@@ -125,51 +125,45 @@ void MoveGenerator::addCastlingmoves(const Board& board, MoveList& moveSpan, con
                                          FenHelpers::CastlingRights::WhiteQueenside
                                        : FenHelpers::CastlingRights::BlackKingside |
                                          FenHelpers::CastlingRights::BlackQueenside;
-    uint8_t castlingRights = board.castlingRights();
+    const uint8_t castlingRights = board.castlingRights();
     if ((castlingRights & ourCastlingRights) == 0) return;
 
 
-    auto qsMask = getCastlingMask(whiteToMove, true);
-    auto ksMask = getCastlingMask(whiteToMove, false);
+    const auto qsMask = getCastlingMask(whiteToMove, true);
+    const auto ksMask = getCastlingMask(whiteToMove, false);
 
-    auto ksClear = ((us | them) & ksMask) == 0;
-    auto qsClear = ((us | them) & qsMask) == 0;
+    const auto ksClear = ((us | them) & ksMask) == 0;
+    const auto qsClear = ((us | them) & qsMask) == 0;
 
-    Square kingSquare = whiteToMove ? 4 : 60;
+    const Square kingSquare = whiteToMove ? 4 : 60;
 
-    if (ksClear && (castlingRights & ourKingsideRights)) {
-        Square targetSquare = whiteToMove ? 6 : 62;
+    if (ksClear && castlingRights & ourKingsideRights) { const Square targetSquare = whiteToMove ? 6 : 62;
         bool ksNotAttacked = true;
-        Bitboard squaresToCheckForAttack = ksMask | (1ULL << kingSquare);
-        while (squaresToCheckForAttack) {
-            Square thisSquare = static_cast<Square>(std::countr_zero(squaresToCheckForAttack));
+        Bitboard squaresToCheckForAttack = ksMask | 1ULL << kingSquare;
+        while (squaresToCheckForAttack) { const Square thisSquare = static_cast<Square>(std::countr_zero(squaresToCheckForAttack));
             if (Referee::SquareAttacked(thisSquare, board, !whiteToMove)) { ksNotAttacked = false; }
             squaresToCheckForAttack &= squaresToCheckForAttack - 1;
         }
 
         // clear, and no squares attacked - make a castling move
-        if (ksNotAttacked) {
-            uint8_t flags = Castling;
-            auto castlingMove = Move(kingSquare, targetSquare, flags);
+        if (ksNotAttacked) { const uint8_t flags = Castling;
+            const auto castlingMove = Move(kingSquare, targetSquare, flags);
             moveSpan.add(castlingMove);
         }
     }
 
-    if (qsClear && (castlingRights & ourQueensideRights)) {
-        Square targetSquare = whiteToMove ? 2 : 58;
+    if (qsClear && castlingRights & ourQueensideRights) { const Square targetSquare = whiteToMove ? 2 : 58;
         bool qsNotAttacked = true;
-        Bitboard squaresToCheckForAttack = qsMask | (1ULL << kingSquare);
+        Bitboard squaresToCheckForAttack = qsMask | 1ULL << kingSquare;
         squaresToCheckForAttack &= ~ (1ULL << 1 | 1ULL << 57); // ignore b1/b8 being attacked
-        while (squaresToCheckForAttack) {
-            Square thisSquare = static_cast<Square>(std::countr_zero(squaresToCheckForAttack));
+        while (squaresToCheckForAttack) { const Square thisSquare = static_cast<Square>(std::countr_zero(squaresToCheckForAttack));
             if (Referee::SquareAttacked(thisSquare, board, !whiteToMove)) { qsNotAttacked = false; }
             squaresToCheckForAttack &= squaresToCheckForAttack - 1;
         }
 
         // clear, and no squares attacked - make a castling move
-        if (qsNotAttacked) {
-            uint8_t flags = Castling;
-            auto castlingMove = Move(kingSquare, targetSquare, flags);
+        if (qsNotAttacked) { const uint8_t flags = Castling;
+            const auto castlingMove = Move(kingSquare, targetSquare, flags);
             moveSpan.add(castlingMove);
         }
     }

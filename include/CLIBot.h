@@ -4,7 +4,8 @@
 
 #ifndef ONYXCPP_CLIBOT_H
 #define ONYXCPP_CLIBOT_H
-#include "SearchWorker.h"
+#include "SearchController.h"
+#include "Searcher.h"
 #include "UciParser.h"
 
 template<typename... Ts>
@@ -17,7 +18,7 @@ Overloaded(Ts...) -> Overloaded<Ts...>;
 
 class CliBot {
 public:
-
+    CliBot() : controller_(board_) {}
 
     // clang-format off
     void HandleCommand(const Command& cmd) {
@@ -36,8 +37,10 @@ public:
 
 private:
 
-    SearchWorker worker_{};
+    SearchController controller_;
     std::string ID = "OnyxCPP v0.0";
+    Board board_;
+    void onDepthComplete(SearchInfo& info);
 
     void onUCI(const UCICommand&);
     void onGo(const GoCommand&);

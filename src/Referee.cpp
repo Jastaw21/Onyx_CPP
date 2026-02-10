@@ -26,7 +26,7 @@ bool Referee::wouldReleasePin(const Square pinnedFrom, const Square pinnedTo, co
 
         // if we're moving on that ray then it's fine, if not illegal
         const auto ray = rayBetween(asSquare,kingSquare);
-        return (ray & (1ULL << pinnedTo)) == 0;
+        return (ray & 1ULL << pinnedTo) == 0;
     }
 
     const auto relevantRook = Piece(Rook, isWhite ? Black : White );
@@ -39,7 +39,7 @@ bool Referee::wouldReleasePin(const Square pinnedFrom, const Square pinnedTo, co
 
         // if we're moving on that ray then it's fine, if not illegal
         const auto ray = rayBetween(asSquare,kingSquare);
-        return (ray & (1ULL << pinnedTo)) == 0;
+        return (ray & 1ULL << pinnedTo) == 0;
     }
 return false;
 

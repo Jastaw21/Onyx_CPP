@@ -33,6 +33,7 @@ public:
 
     Move() : data_(0){} // default constructor
     Move(const Square from, const Square to, const uint8_t flags) : data_(from | to << 6 | flags << 12){}
+    explicit Move(const uint32_t data) : data_(data){}
 
 
     bool isNullMove() const{ return data_ == 0; }
@@ -41,6 +42,7 @@ public:
     Square from() const{ return data_ & 0x3f; }
     Square to() const{ return data_ >> 6 & 0x3f; }
     bool isPromotion() const{ return flags() & (PromotionQueen | PromotionBishop | PromotionKnight | PromotionRook); }
+    uint32_t Data() const {return data_;}
 
     PieceType promotedPiece() const{
         auto flag = flags();

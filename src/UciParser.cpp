@@ -65,7 +65,7 @@ std::optional<Command> UCIParser::parsePosition(){
     else if (peek().type == TokenType::FEN_TOKEN) {
         consume(); // clear the fen token
 
-        std::string fenBody = peek().value;
+        const std::string fenBody = peek().value;
         consume();
         result.isStartPos = false;
         result.fen = fenBody;
@@ -100,8 +100,7 @@ std::optional<Command> UCIParser::parseGo(){
         || peek().type == TokenType::WINC
         || peek().type == TokenType::BINC
         || peek().type == TokenType::PERFT
-    ) {
-        auto anchorToken = consume();
+    ) { const auto anchorToken = consume();
         switch (anchorToken.type) {
             case TokenType::DEPTH: {
                 if (peek().type == TokenType::INT_LITERAL) { result.depth = std::stoi(consume().value); }

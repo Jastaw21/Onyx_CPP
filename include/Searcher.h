@@ -4,10 +4,13 @@
 
 #ifndef ONYXCPP_SEARCHWORKER_H
 #define ONYXCPP_SEARCHWORKER_H
+#include <functional>
+
 #include "Board.h"
+#include "CancellationToken.h"
 #include "Move.h"
 #include "TimeControl.h"
-#include "Timer.h"
+
 
 
 struct SearchOptions {
@@ -18,41 +21,33 @@ struct SearchResults {
     int score;
     Move bestMove;
 };
-
 struct SearchFlag {
     int score;
     bool completed = false;
 
     static SearchFlag Abort(){return SearchFlag{0,false};}
 };
-struct Statistics {
-    uint64_t nodes = 0;
-    uint64_t qNodes = 0;
 
-    uint64_t betaCutoffs = 0;
-};
 
-class SearchWorker {
+class Searcher {
 public:
-
-
-    SearchResults search(SearchOptions options);
-    Board& GetBoard() { return board; }
-    SearchWorker() : board(Board()), bestMove(Move()), bestScore(0){}
+    Searcher(Board& board, CancellationToken& token, InfoCallback callback = nullptr) : board(board), token_(token), callback_(callback) {}
+    SearchResults search(const SearchOptions& options);
+    Board& GetBoard() const{ return board; }
 
 private:
-    Board board;
-    bool stopFlag = false;
+    Board& board;
     Statistics statistics_{};
 
     Move bestMove;
-    int bestScore;
+    int bestScore = 0;
 
-    Timer timer;
+    CancellationToken& token_;
+    InfoCallback callback_;
 
     SearchFlag DoSearch(int depthRemaining, int depthFromRoot, int alpha, int beta);
     SearchFlag Quiescence(int alpha, int beta, int depthFromRoot);
-    void printInfo(int depth, int bestScore, Move move, uint64_t elpasedMs);
+    void printInfo(int depth, int bestScore, Move move, uint64_t elapsed) const;
 
 };
 

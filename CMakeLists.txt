@@ -26,14 +26,17 @@ add_library(OnyxCoreLib
         include/UciParser.h
         include/CLIBot.h
         src/CLIBot.cpp
-        src/SearchWorker.cpp
-        include/SearchWorker.h
+        src/Searcher.cpp
+        include/Searcher.h
         include/TimeControl.h
         src/Evaluator.cpp
         include/Evaluator.h
         include/Timer.h
         src/SearchController.cpp
         include/SearchController.h
+        include/CancellationToken.h
+        src/SearchThread.cpp
+        include/SearchThread.h
 )
 add_subdirectory(tests)
 target_include_directories(OnyxCoreLib

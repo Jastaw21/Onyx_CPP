@@ -110,14 +110,13 @@ MaterialEval Evaluator::EvaluateMaterial(Board& board, const bool forWhite, cons
 
     for (auto const& piece: pieces) {
         auto placements = board.getBoardByPiece(piece);
-        auto count = std::popcount(placements);
+        const auto count = std::popcount(placements);
         eval.materialScore += count * pieceValues[piece.type()];
-        while (placements) {
-            auto thisSquare = static_cast<Square>(std::countr_zero(placements));
-            auto startScore = getScoreOnSquare(piece.type(),thisSquare,forWhite,true);
-            auto endScore = getScoreOnSquare(piece.type(),thisSquare,forWhite,false);
+        while (placements) { const auto thisSquare = static_cast<Square>(std::countr_zero(placements));
+            const auto startScore = getScoreOnSquare(piece.type(),thisSquare,forWhite,true);
+            const auto endScore = getScoreOnSquare(piece.type(),thisSquare,forWhite,false);
 
-            eval.pieceSquareScore += (startScore * (1.0 - endGameRatio)) + (endScore * endGameRatio);
+            eval.pieceSquareScore += startScore * (1.0 - endGameRatio) + endScore * endGameRatio;
 
             placements &= placements -1;
         }

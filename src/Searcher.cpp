@@ -2,7 +2,7 @@
 // Created by jacks on 08/02/2026.
 //
 
-#include "../include/SearchWorker.h"
+#include "../include/Searcher.h"
 
 #include <iostream>
 
@@ -14,7 +14,7 @@
 
 static constexpr int INF = 30000;
 
-SearchResults SearchWorker::search(SearchOptions options){
+SearchResults Searcher::search(const SearchOptions& options){
     bestScore = -INF;
 
     bestMove = Move();
@@ -23,9 +23,8 @@ SearchResults SearchWorker::search(SearchOptions options){
 
     SearchResults lastCompleted{bestScore, bestMove};
 
-    timer.start();
     for (int depth = 1; depth <= options.depthLimit; ++depth) {
-        auto result = DoSearch(depth, 0, -INF, INF);
+        const auto result = DoSearch(depth, 0, -INF, INF);
 
         if (!result.completed)
             break; // stop requested
@@ -33,15 +32,16 @@ SearchResults SearchWorker::search(SearchOptions options){
         bestScore = result.score;
         lastCompleted = {bestScore, bestMove};
 
-        printInfo(depth, bestScore, bestMove, timer.elapsedMs());
+        if (callback_) {
+            callback_(SearchInfo{depth,bestScore,bestMove.Data(),statistics_});
+        }
     }
-
     return lastCompleted;
 }
 
 
-SearchFlag SearchWorker::DoSearch(const int depthRemaining, const int depthFromRoot, int alpha, const int beta){
-    if (stopFlag)
+SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot, int alpha, const int beta){
+    if (statistics_.nodes % 2047 == 0 && token_.isStopped())
         return SearchFlag::Abort();
 
     if (depthFromRoot > 0) {
@@ -49,8 +49,7 @@ SearchFlag SearchWorker::DoSearch(const int depthRemaining, const int depthFromR
             return SearchFlag{0, true};
     }
 
-    if (depthRemaining == 0) {
-        auto qEval = Quiescence(alpha, beta, depthFromRoot);
+    if (depthRemaining == 0) { const auto qEval = Quiescence(alpha, beta, depthFromRoot);
         if (!qEval.completed)
             return SearchFlag::Abort();
 
@@ -58,7 +57,7 @@ SearchFlag SearchWorker::DoSearch(const int depthRemaining, const int depthFromR
     }
 
 
-    bool isInCheck = Referee::IsInCheck(board, board.whiteToMove());
+    const bool isInCheck = Referee::IsInCheck(board, board.whiteToMove());
 
     auto moves = MoveList();
     MoveGenerator::GenerateMoves(board, moves);
@@ -71,12 +70,12 @@ SearchFlag SearchWorker::DoSearch(const int depthRemaining, const int depthFromR
 
         legalMoveCount++;
         board.makeMove(move);
-        auto childResult = DoSearch(depthRemaining - 1, depthFromRoot + 1, -beta, -alpha);
+        const auto childResult = DoSearch(depthRemaining - 1, depthFromRoot + 1, -beta, -alpha);
         board.unmakeMove(move);
 
         if (!childResult.completed) return SearchFlag::Abort();
 
-        auto eval = -childResult.score;
+        const auto eval = -childResult.score;
 
         if (eval >= beta) {
             statistics_.betaCutoffs++;
@@ -103,12 +102,12 @@ SearchFlag SearchWorker::DoSearch(const int depthRemaining, const int depthFromR
     return SearchFlag{0, true};
 }
 
-SearchFlag SearchWorker::Quiescence(int alpha, const int beta, const int depthFromRoot){
-    if (stopFlag)
+SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRoot){
+    if (statistics_.nodes % 2047 == 0 && token_.isStopped())
         return SearchFlag::Abort();
 
-    bool isInCheck = Referee::IsInCheck(board, board.whiteToMove());
-    auto standPat = Evaluator::Evaluate(board);
+    const bool isInCheck = Referee::IsInCheck(board, board.whiteToMove());
+    const auto standPat = Evaluator::Evaluate(board);
 
     if (!isInCheck) {
         if (standPat >= beta)
@@ -132,11 +131,11 @@ SearchFlag SearchWorker::Quiescence(int alpha, const int beta, const int depthFr
             continue;
         hasLegalMove = true;
         board.makeMove(move);
-        auto child = Quiescence(-beta, -alpha, depthFromRoot + 1);
+        const auto child = Quiescence(-beta, -alpha, depthFromRoot + 1);
         board.unmakeMove(move);
         if (!child.completed)
             return SearchFlag::Abort();
-        auto score = -child.score;
+        const auto score = -child.score;
 
         if (score >= beta) {
             statistics_.betaCutoffs++;
@@ -150,8 +149,8 @@ SearchFlag SearchWorker::Quiescence(int alpha, const int beta, const int depthFr
     return SearchFlag{alpha, true};
 }
 
-void SearchWorker::printInfo(const int depth, const int bestScore, Move move, uint64_t elpasedMs){
+void Searcher::printInfo(const int depth, const int bestScore, Move move, uint64_t elapsed) const{
     std::cout << "info depth " << depth << " multipv 1 " << "score cp " << bestScore << " nodes " << statistics_.nodes
-    << " nps " << (statistics_.nodes / elpasedMs) * 1000.0 << " time " << elpasedMs
+    << " nps " << statistics_.nodes / elapsed * 1000.0 << " time " << elapsed
             << " beta cutoff " << statistics_.betaCutoffs << std::endl;
 }

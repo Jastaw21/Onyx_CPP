@@ -184,14 +184,13 @@ void Board::unmakeMove(const Move& move){
 }
 
 void Board::addMoveFlags(Move& move){
-    auto pieceMoved = board_[move.to()];
+    const auto pieceMoved = board_[move.to()];
 
     if (pieceMoved.type() == Pawn && move.to() == enPassantSquare_) {
         move.addFlag(EnPassant);
     }
-    if (pieceMoved.type() == King) {
-        RankAndFile rafFrom = squareToRankAndFile(move.from());
-        RankAndFile rafTom = squareToRankAndFile(move.to());
+    if (pieceMoved.type() == King) { const RankAndFile rafFrom = squareToRankAndFile(move.from());
+        const RankAndFile rafTom = squareToRankAndFile(move.to());
         if (std::abs(rafFrom.file - rafTom.file) > 1)
             move.addFlag(Castling);
     }

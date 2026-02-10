@@ -5,6 +5,7 @@
 #ifndef ONYXCPP_TYPES_H
 #define ONYXCPP_TYPES_H
 #include <cstdint>
+#include <functional>
 #include <string>
 
 using Square = int8_t;
@@ -19,5 +20,19 @@ struct sp {
 };
 
 using Psq =  std::array<sp,64>;
+
+
+struct Statistics {
+    uint64_t nodes = 0;
+    uint64_t qNodes = 0;
+
+    uint64_t betaCutoffs = 0;
+};
+
+struct SearchInfo {
+    int depth; int bestScore; uint32_t Move; Statistics stats;
+};
+
+using InfoCallback = std::function<void(const SearchInfo&)>;
 
 #endif //ONYXCPP_TYPES_H

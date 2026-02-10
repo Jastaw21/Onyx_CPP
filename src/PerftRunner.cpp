@@ -13,7 +13,7 @@
 
 uint64_t PerftRunner::RunPerft(Board& board, const int depth){
 
-    auto nodes = CountNodes(board,depth);
+    const auto nodes = CountNodes(board,depth);
     return nodes;
 
 }
@@ -28,11 +28,10 @@ void PerftRunner::PerftDivide(Board& board, const int depth){
     for (auto move : moves) {
         if (!Referee::MoveIsLegal(board,move))
             {continue;}
-        bool whiteToMove = board.whiteToMove();
+        const bool whiteToMove = board.whiteToMove();
         board.makeMove(move);
 
-        if (!Referee::IsInCheck(board,whiteToMove)) {
-            auto nodes = CountNodes(board, depth -1);
+        if (!Referee::IsInCheck(board,whiteToMove)) { const auto nodes = CountNodes(board, depth -1);
             totalNodes += nodes;
             std::cout << moveToNotation(move) << ": " << nodes << std::endl;
         }
@@ -60,7 +59,7 @@ uint64_t PerftRunner::CountNodes(Board& board, const int depth){
             continue;
         }
 
-        bool whiteToMove = board.whiteToMove();
+        const bool whiteToMove = board.whiteToMove();
         board.makeMove(move);
 
         if (!Referee::IsInCheck(board,whiteToMove))
