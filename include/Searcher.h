@@ -10,6 +10,7 @@
 #include "CancellationToken.h"
 #include "Move.h"
 #include "TimeControl.h"
+class SearchController;
 static constexpr int MAX_PLY = 64;
 using PVTable = Move[MAX_PLY][MAX_PLY];
 using PVLength = int[MAX_PLY];
@@ -18,27 +19,39 @@ struct SearchOptions {
     int depthLimit;
     TimeControl tc;
 };
+
 struct SearchResults {
     int score;
     Move bestMove;
 };
+
 struct SearchFlag {
     int score;
     bool completed = false;
 
-    static SearchFlag Abort(){return SearchFlag{0,false};}
+    static SearchFlag Abort(){ return SearchFlag{0, false}; }
 };
 
 struct SearchInfo {
-    int depth; int bestScore; uint32_t Move; Statistics stats; std::string pv ;
+    int depth;
+    int bestScore;
+    uint32_t Move;
+    Statistics stats;
+    std::string pv;
 };
+
 class Searcher {
 public:
-    Searcher(Board& board, CancellationToken& token, InfoCallback callback = nullptr) : board(board), token_(token), callback_(callback) {}
+
+    Searcher(Board& board, CancellationToken& token, SearchController* controller,
+             InfoCallback callback = nullptr) : board(board), token_(token), callback_(callback),
+                                                controller_(controller){}
+
     SearchResults search(const SearchOptions& options);
     Board& GetBoard() const{ return board; }
 
 private:
+
     Board& board;
     Statistics statistics_{};
 
@@ -47,11 +60,11 @@ private:
 
     CancellationToken& token_;
     InfoCallback callback_;
+    SearchController* controller_;
 
     SearchFlag DoSearch(int depthRemaining, int depthFromRoot, int alpha, int beta);
     SearchFlag Quiescence(int alpha, int beta, int depthFromRoot);
     void printInfo(int depth, int bestScore, Move move, uint64_t elapsed) const;
-
 
 
     Move pvTable[MAX_PLY][MAX_PLY]{{Move()}};

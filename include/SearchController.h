@@ -11,6 +11,7 @@
 #include "Searcher.h"
 #include "SearchThread.h"
 #include "Timer.h"
+#include "TranspositionTable.h"
 
 
 class SearchController {
@@ -19,7 +20,8 @@ public:
     using InfoCallback = std::function<void(const SearchInfo&)>;
 
     explicit SearchController(Board& board)
-        : worker_(std::make_unique<SearchThread>(board, [this](const SearchInfo& info) { onDepthComplete(info); })),
+        : worker_(
+              std::make_unique<SearchThread>(board, this, [this](const SearchInfo& info) { onDepthComplete(info); })),
           board_(board){}
 
     void start(SearchOptions& options){
@@ -46,6 +48,7 @@ public:
             timerThread_.join();
     }
 
+    TranspositionTable& transpositionTable(){ return transpositionTable_; }
     SearchResults results() const{ return worker_->getLastResults(); }
 
 private:
@@ -55,6 +58,7 @@ private:
     InfoCallback cb;
     Timer timer_;
     Board& board_;
+    TranspositionTable transpositionTable_;
 
     std::thread timerThread_;
     std::atomic<bool> monitoring_{false};

@@ -17,8 +17,11 @@
 class SearchThread {
 public:
 
-    SearchThread(Board& board, std::function<void(const SearchInfo&)> callback = nullptr) : board_(board),
-        searcher_(board, token_, std::move(callback)), thread(&SearchThread::loop, this){}
+    SearchThread(Board& board, SearchController* controller,
+                 std::function<void(const SearchInfo&)> callback = nullptr) : board_(board),
+                                                                              searcher_(board, token_, controller,
+                                                                                  std::move(callback)),
+                                                                              thread(&SearchThread::loop, this){}
 
     void Start(SearchOptions& options){ {
             std::lock_guard lock(mutex);
