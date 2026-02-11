@@ -23,6 +23,7 @@ SearchResults Searcher::search(const SearchOptions& options){
 
     SearchResults lastCompleted{bestScore, bestMove};
 
+    bool foundValidMove = false;
     for (int depth = 1; depth <= options.depthLimit; ++depth) {
         pvLength[0] = 0;
         for (int i = 0; i < MAX_PLY; ++i)
@@ -33,6 +34,7 @@ SearchResults Searcher::search(const SearchOptions& options){
         if (!result.completed)
             break; // stop requested
 
+        foundValidMove = true;
         bestScore = result.score;
         lastCompleted = {bestScore, bestMove};
 
@@ -45,6 +47,17 @@ SearchResults Searcher::search(const SearchOptions& options){
             callback_(SearchInfo{depth,bestScore,bestMove.Data(),statistics_,pv});
         }
     }
+
+    if (!foundValidMove) {
+        auto moves = MoveList();
+        MoveGenerator::GenerateMoves(board, moves);
+        for (auto move : moves) {
+            if (Referee::MoveIsLegal(board, move)) {
+                return {0, move};  // Return first legal move
+            }
+        }
+    }
+
     return lastCompleted;
 }
 
