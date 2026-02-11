@@ -42,6 +42,9 @@ public:
     Board();
     explicit Board(const Fen& fen);
 
+    // zobrist hash
+    ZobristHash getHash() const{ return zobrist_; }
+
     // make/unmake
     void makeMove(const Move& move_);
     void unmakeMove(const Move& move);
@@ -58,6 +61,7 @@ public:
     Bitboard getBoardByPiece(const Piece piece) const{ return boards_[piece.index()]; }
     Piece pieceAtSquare(const Square square) const{ return board_[square]; }
     Bitboard getOccupancy() const;
+    std::array<Piece, 64>& getBoard() { return board_; }
 
     // fen loading/gettting
     void loadFen(const Fen& fen);

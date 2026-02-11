@@ -22,7 +22,7 @@ public:
     explicit SearchController(Board& board)
         : worker_(
               std::make_unique<SearchThread>(board, this, [this](const SearchInfo& info) { onDepthComplete(info); })),
-          board_(board){}
+          board_(board), transpositionTable_(512){}
 
     void start(SearchOptions& options){
         if (timerThread_.joinable())

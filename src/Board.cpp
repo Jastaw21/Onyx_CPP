@@ -5,6 +5,7 @@
 #include "Fen.h"
 #include "Move.h"
 #include "utils.h"
+#include "Zobrist.h"
 
 void Board::setOff(const Piece piece, const Square square){
     // this will currently overwrite the piece that moved there
@@ -16,12 +17,14 @@ Board::Board(){
     board_ = std::array<Piece, 64>{Piece()};
     boards_ = std::array<Bitboard, 12>{0ULL};
     FromFen(FenHelpers::StartPos);
+    zobrist_ = Zobrist::fromBoard(this);
 }
 
 Board::Board(const Fen& fen){
     board_ = std::array<Piece, 64>{Piece()};
     boards_ = std::array<Bitboard, 12>{0ULL};
     FromFen(fen);
+    zobrist_ = Zobrist::fromBoard(this);
 }
 
 void Board::updateCastlingRights(const Piece pieceMoved, const RankAndFile moveFrom){
@@ -51,13 +54,15 @@ void Board::updateCastlingRights(const Piece pieceMoved, const RankAndFile moveF
 
 void Board::makeMove(const Move& move_){
     const Square moveFromSquare = move_.from();
+    const Square moveToSquare = move_.to();
+
     const auto pieceMoved = board_[moveFromSquare];
+    const bool isWhite = pieceMoved.colour() == White;
+
+    const uint8_t flags = move_.flags();
 
     // detect the capture - but consider ep
     Piece pieceCaptured;
-    const bool isWhite = pieceMoved.colour() == White;
-    const uint8_t flags = move_.flags();
-    const Square moveToSquare = move_.to();
     if (flags & EnPassant) {
         const Colour capturedColour = isWhite ? Black : White;
         pieceCaptured = Piece(Pawn, capturedColour);
@@ -68,12 +73,16 @@ void Board::makeMove(const Move& move_){
 
     pushHistory(pieceCaptured);
 
+    auto enPassantSquarePreMove = enPassantSquare_;
     // if the ep square is set, any move loses it
     const auto lastEPSquare = enPassantSquare_;
     if (enPassantSquare_ != -1)
         enPassantSquare_ = -1;
 
+    auto castlingRightsPreMove = castlingRights_;
     updateCastlingRights(pieceMoved, moveFrom);
+
+    Square capturedOn = -1;
 
     // double push - creating an exposed en passant target square
     if (pieceMoved.type() == Pawn && std::abs(moveFromSquare - moveToSquare) == 16) {
@@ -84,6 +93,7 @@ void Board::makeMove(const Move& move_){
 
     // remove the captured piece (doesn't do anything for ep)
     if (pieceCaptured.exists() && !(flags & EnPassant)) {
+        capturedOn = moveToSquare;
         setOff(pieceCaptured, moveToSquare);
 
         // may have lost the right to castle
@@ -91,18 +101,23 @@ void Board::makeMove(const Move& move_){
             // lost on a rook origin square
             if (moveToSquare == 63 || moveToSquare == 0 || moveToSquare == 7 || moveToSquare == 56) {
                 switch (moveToSquare) {
-                    case 63 : castlingRights_ &= ~FenHelpers::BlackKingside; break;
-                    case 56: castlingRights_ &= ~FenHelpers::BlackQueenside; break;
-                    case 7 : castlingRights_ &= ~FenHelpers::WhiteKingside; break;
-                    case 0: castlingRights_ &= ~FenHelpers::WhiteQueenside; break;
+                    case 63: castlingRights_ &= ~FenHelpers::BlackKingside;
+                        break;
+                    case 56: castlingRights_ &= ~FenHelpers::BlackQueenside;
+                        break;
+                    case 7: castlingRights_ &= ~FenHelpers::WhiteKingside;
+                        break;
+                    case 0: castlingRights_ &= ~FenHelpers::WhiteQueenside;
+                        break;
                 }
             }
         }
     }
 
     // if is ep we have to force it to work right
+
     if (flags & EnPassant) {
-        const Square capturedOn = lastEPSquare + (pieceMoved.isWhite() ? -8 : 8);
+        capturedOn = lastEPSquare + (pieceMoved.isWhite() ? -8 : 8);
         setOff(pieceCaptured, capturedOn);
     }
 
@@ -117,12 +132,18 @@ void Board::makeMove(const Move& move_){
 
     if (move_.isPromotion()) {
         setOff(pieceMoved, moveFromSquare);
-        const auto promotedTo = Piece(move_.promotedPiece(), isWhite ? White : Black);
+        const auto promotedTo = Piece(move_.promotionType(), isWhite ? White : Black);
         setOn(promotedTo, moveToSquare);
     } else {
         // move the moving piece
         movePiece(pieceMoved, moveFromSquare, moveToSquare);
     }
+
+    Zobrist::applyMove(zobrist_, move_,
+                       pieceMoved, pieceCaptured,
+                       capturedOn,
+                       castlingRightsPreMove, castlingRights_,
+                       enPassantSquarePreMove, enPassantSquare_);
 
     // flip turns
     whiteToMove_ = !whiteToMove_;
@@ -156,7 +177,7 @@ void Board::unmakeMove(const Move& move){
     const auto movedPiece = board_[to];
 
     if (move.isPromotion()) {
-        const auto promotedPiece = Piece(move.promotedPiece(), movedPiece.isWhite() ? White : Black);
+        const auto promotedPiece = Piece(move.promotionType(), movedPiece.isWhite() ? White : Black);
         const auto pawnToRestore = Piece(Piece(Pawn, movedPiece.isWhite() ? White : Black));
         setOff(promotedPiece, to);
         setOn(pawnToRestore, from);
@@ -166,11 +187,13 @@ void Board::unmakeMove(const Move& move){
     if (lastState.capturedPiece.exists() && !(flags & EnPassant))
         setOn(lastState.capturedPiece, to);
 
-    if (flags & EnPassant) { const Square capturedOn = enPassantSquare_ + (movedPiece.isWhite() ? -8 : 8);
+    if (flags & EnPassant) {
+        const Square capturedOn = enPassantSquare_ + (movedPiece.isWhite() ? -8 : 8);
         setOn(lastState.capturedPiece, capturedOn);
     }
 
-    if (flags & Castling) { const auto moveTo = squareToRankAndFile(to);
+    if (flags & Castling) {
+        const auto moveTo = squareToRankAndFile(to);
         const auto moveFrom = squareToRankAndFile(from);
         const auto rookTargetFile = moveTo.file == 6 ? 5 : 3; // always moves one inside
         const auto rookOriginFile = moveTo.file == 6 ? 7 : 0;
@@ -186,10 +209,9 @@ void Board::unmakeMove(const Move& move){
 void Board::addMoveFlags(Move& move){
     const auto pieceMoved = board_[move.to()];
 
-    if (pieceMoved.type() == Pawn && move.to() == enPassantSquare_) {
-        move.addFlag(EnPassant);
-    }
-    if (pieceMoved.type() == King) { const RankAndFile rafFrom = squareToRankAndFile(move.from());
+    if (pieceMoved.type() == Pawn && move.to() == enPassantSquare_) { move.addFlag(EnPassant); }
+    if (pieceMoved.type() == King) {
+        const RankAndFile rafFrom = squareToRankAndFile(move.from());
         const RankAndFile rafTom = squareToRankAndFile(move.to());
         if (std::abs(rafFrom.file - rafTom.file) > 1)
             move.addFlag(Castling);
