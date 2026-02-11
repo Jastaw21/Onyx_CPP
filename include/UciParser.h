@@ -37,7 +37,7 @@ struct PositionCommand {
 };
 
 struct NewGameCommand {};
-
+struct PrintDebugCommand {};
 using Command = std::variant<
     UCICommand,
     GoCommand,
@@ -45,7 +45,8 @@ using Command = std::variant<
     QuitCommand,
     IsReadyCommand,
     PositionCommand,
-    NewGameCommand
+    NewGameCommand,
+PrintDebugCommand
 >;
 
 class UCIParser {

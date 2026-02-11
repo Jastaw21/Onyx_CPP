@@ -30,7 +30,7 @@ struct SearchFlag {
 };
 
 struct SearchInfo {
-    int depth; int bestScore; uint32_t Move; Statistics stats; PVTable *table; PVLength *pvLength ;
+    int depth; int bestScore; uint32_t Move; Statistics stats; std::string pv ;
 };
 class Searcher {
 public:

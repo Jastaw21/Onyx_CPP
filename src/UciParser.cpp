@@ -33,6 +33,8 @@ std::optional<Command> UCIParser::parse(const std::string& inString){
 
         if (liveToken.type == TokenType::POSITION) { return parsePosition(); }
 
+        if (liveToken.type == TokenType::DEBUG) {return PrintDebugCommand{};}
+
 
     }
 

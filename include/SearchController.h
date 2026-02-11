@@ -18,7 +18,7 @@ public:
 
     using InfoCallback = std::function<void(const SearchInfo&)>;
 
-    SearchController(Board& board)
+    explicit SearchController(Board& board)
         : worker_(std::make_unique<SearchThread>(board, [this](const SearchInfo& info) { onDepthComplete(info); })),
           board_(board){}
 
@@ -26,7 +26,9 @@ public:
         if (timerThread_.joinable())
             timerThread_.join();
 
-        timer_.start();
+        auto timePerMove = getTimePerMove(options);
+
+        timer_.start(timePerMove);
         worker_->Start(options);
 
         if (options.tc.isTimed()) {
@@ -41,7 +43,7 @@ public:
         worker_->Stop();
 
         if (timerThread_.joinable())
-            timerThread_.join();;
+            timerThread_.join();
     }
 
     SearchResults results() const{ return worker_->getLastResults(); }

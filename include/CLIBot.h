@@ -20,6 +20,7 @@ class CliBot {
 public:
     CliBot() : controller_(board_) {}
 
+
     // clang-format off
     void HandleCommand(const Command& cmd) {
         std::visit(Overloaded{
@@ -30,6 +31,8 @@ public:
             [this](const IsReadyCommand& c)    { onIsReady(c); },
             [this](const PositionCommand& c)   { onPosition(c); },
             [this](const NewGameCommand& c)    { onNewGame(c); },
+                [this](const PrintDebugCommand& c)    { onPrintDebug(c); },
+
 
         }, cmd);
     }
@@ -49,6 +52,7 @@ private:
     void onIsReady(const IsReadyCommand&);
     void onPosition(const PositionCommand&);
     void onNewGame(const NewGameCommand&);
+    void onPrintDebug(PrintDebugCommand printDebugCommand);
 
 };
 

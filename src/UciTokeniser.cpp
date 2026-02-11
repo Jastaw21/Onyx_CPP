@@ -64,6 +64,7 @@ void Tokeniser::handleToken(std::string& builtToken){
     else if (builtToken == "binc") { type = TokenType::BINC; }
     else if (builtToken == "perft"){type = TokenType::PERFT;}
     else if (builtToken == "fen") {type = TokenType::FEN_TOKEN;}
+    else if (builtToken == "d") {type = TokenType::DEBUG;}
 
     //unknown token
     else { type = getUnknownTokenType(builtToken); }

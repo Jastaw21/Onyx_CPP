@@ -39,6 +39,7 @@ void CliBot::onIsReady(const IsReadyCommand&){
     std::cout << "readyok" << std::endl;
 }
 void CliBot::onPosition(const PositionCommand& command){
+    controller_.stop();
     board_.loadFen(command.fen);
 
     for (auto& move : command.moves) {
@@ -48,3 +49,6 @@ void CliBot::onPosition(const PositionCommand& command){
     }
 }
 void CliBot::onNewGame(const NewGameCommand&){}
+void CliBot::onPrintDebug(PrintDebugCommand printDebugCommand){
+    std::cout << board_.getFen() << std::endl;
+}

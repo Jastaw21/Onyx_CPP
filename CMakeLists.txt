@@ -45,4 +45,13 @@ target_include_directories(OnyxCoreLib
 )
 
 add_executable(OnyxCPP main.cpp)
+
+if (MINGW)
+    target_link_options(OnyxCPP PRIVATE
+            -static
+            -static-libgcc
+            -static-libstdc++
+    )
+endif()
+
 target_link_libraries(OnyxCPP OnyxCoreLib)

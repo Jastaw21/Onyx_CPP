@@ -25,6 +25,9 @@ SearchResults Searcher::search(const SearchOptions& options){
 
     for (int depth = 1; depth <= options.depthLimit; ++depth) {
         pvLength[0] = 0;
+        for (int i = 0; i < MAX_PLY; ++i)
+            pvLength[i] = 0;
+
         const auto result = DoSearch(depth, 0, -INF, INF);
 
         if (!result.completed)
@@ -34,7 +37,12 @@ SearchResults Searcher::search(const SearchOptions& options){
         lastCompleted = {bestScore, bestMove};
 
         if (callback_) {
-            callback_(SearchInfo{depth,bestScore,bestMove.Data(),statistics_,&pvTable,&pvLength});
+            std::string pv;
+            for (int i = 0; i < pvLength[0]; ++i) {
+                auto move = pvTable[0][i];
+                pv += moveToNotation(move) + ' ';
+            }
+            callback_(SearchInfo{depth,bestScore,bestMove.Data(),statistics_,pv});
         }
     }
     return lastCompleted;
@@ -64,10 +72,13 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     MoveGenerator::GenerateMoves(board, moves);
 
     int legalMoveCount = 0;
+
     for (auto move: moves) {
         statistics_.nodes++;
         if (!Referee::MoveIsLegal(board, move))
             continue;
+
+        pvLength[depthFromRoot + 1] = 0;
 
         legalMoveCount++;
         board.makeMove(move);
@@ -157,8 +168,3 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
     return SearchFlag{alpha, true};
 }
 
-void Searcher::printInfo(const int depth, const int bestScore, Move move, uint64_t elapsed) const{
-    std::cout << "info depth " << depth << " multipv 1 " << "score cp " << bestScore << " nodes " << statistics_.nodes
-    << " nps " << statistics_.nodes / elapsed * 1000.0 << " time " << elapsed
-            << " beta cutoff " << statistics_.betaCutoffs << std::endl;
-}

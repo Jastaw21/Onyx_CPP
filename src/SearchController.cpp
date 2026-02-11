@@ -6,16 +6,12 @@
 
 void SearchController::onDepthComplete(const SearchInfo& info){
     const auto elapsed = std::max(1ull,timer_.elapsedMs());
-    std::string pv;
-    auto pvLength = info.pvLength;
-    auto pvTable = info.table;
-    for (int i = 0; i < *pvLength[0]; ++i)
-        pv += moveToNotation(*pvTable[0][i]) + ' ';
+
 
     std::cout
             << "info depth " << info.depth << " multipv 1 " << "score cp " << info.bestScore << " nodes "
-            << info.stats.nodes << " nps " << info.stats.nodes / elapsed * 1000.0 << " time " << elapsed
-            << " pv " << pv << std::endl;
+            << info.stats.nodes << " nps " << (int)(info.stats.nodes / elapsed * 1000.0) << " time " << elapsed
+            << " pv " << info.pv << std::endl;
 }
 
 uint64_t SearchController::getTimePerMove(SearchOptions& options){

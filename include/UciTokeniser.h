@@ -32,6 +32,9 @@ enum class TokenType {
     WTIME, BTIME, WINC, BINC,
     PERFT,
     FEN_TOKEN,
+
+    // non uci helpers
+    DEBUG
 };
 
 struct Token {
