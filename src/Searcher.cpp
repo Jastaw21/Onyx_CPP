@@ -86,15 +86,15 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     if (ttEval.completed) {
 
         auto ttMove = controller_->transpositionTable().Lookup(hash).move;
-        bool legal = Referee::MoveIsLegal(board,ttMove);
-        if (depthFromRoot == 0 && legal) {
-            bestScore = ttEval.score;
-            bestMove = ttMove;
+        if (Referee::MoveIsLegal(board,ttMove)) {
+            if (depthFromRoot == 0 ) {
+                bestScore = ttEval.score;
+                bestMove = ttMove;
+
+            }
             return SearchFlag{ttEval.score, true};
         }
 
-        if (legal)
-            return SearchFlag{ttEval.score, true};
     }
 
 

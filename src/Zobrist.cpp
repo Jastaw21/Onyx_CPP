@@ -49,6 +49,8 @@ void Zobrist::applyMove(uint64_t& currentHash, const Move& move, const Piece pie
     // clang-format off
     if (!initialized) init();
 
+    if (!pieceMoved.exists()) return;
+
     // swap turns
     currentHash ^= whiteToMove;
 

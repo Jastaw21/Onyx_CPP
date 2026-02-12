@@ -48,6 +48,9 @@ return false;
 bool Referee::MoveIsLegal(Board& board, const Move move){
     const auto pieceMoved = board.pieceAtSquare(move.from());
 
+    if (!pieceMoved.exists()) return false;
+    if (pieceMoved.colour() != (board.whiteToMove() ? White : Black)) return false;
+
     if (pieceMoved.type() == King) { return fullLegalityCheck(board, move); }
 
     const bool isWhite = pieceMoved.isWhite();

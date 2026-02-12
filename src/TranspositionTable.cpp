@@ -55,7 +55,9 @@ void TranspositionTable::Store(const ZobristHash key, const Move move, const int
 
 TTEntry TranspositionTable::Lookup(const ZobristHash key) const{
     const uint64_t index = key & indexMask;
-    return table[index];
+    auto entry = table[index];
+    if (entry.key != key) return TTEntry{0, Move(), 0, NONE, 0, 0};
+    return entry;
 }
 
 TTEval TranspositionTable::Lookup(const ZobristHash key, const int depthFromRoot, const int alpha, const int beta) const{
