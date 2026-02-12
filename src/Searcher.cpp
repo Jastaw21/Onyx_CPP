@@ -80,15 +80,21 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     }
 
     auto hash = board.getHash();
-    // seee if there's another search that has evaluated where this current position leads to, it needs to have gone at least to the same depth as we're going to
+    // see if there's another search that has evaluated where this current position leads to, it needs to have gone at least to the same depth as we're going to
     auto ttEval = controller_->transpositionTable().Lookup(hash, depthRemaining,alpha,beta);
 
     if (ttEval.completed) {
-        if (depthFromRoot == 0) {
+
+        auto ttMove = controller_->transpositionTable().Lookup(hash).move;
+        bool legal = Referee::MoveIsLegal(board,ttMove);
+        if (depthFromRoot == 0 && legal) {
             bestScore = ttEval.score;
-            bestMove = controller_->transpositionTable().Lookup(hash).move;
+            bestMove = ttMove;
+            return SearchFlag{ttEval.score, true};
         }
-        return SearchFlag{ttEval.score, true};
+
+        if (legal)
+            return SearchFlag{ttEval.score, true};
     }
 
 

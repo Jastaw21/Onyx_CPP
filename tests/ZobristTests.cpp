@@ -42,3 +42,22 @@ TEST(Zobrist, Castling){
     auto boardPostMove = Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R4RK1 b kq - 1 1");
     ASSERT_EQ(boardPostMove.getHash(),board.getHash());
 }
+
+TEST(Zobrist,WhiteToMove){
+
+    // at init
+    auto board = Board();
+    auto hashAtInit = board.getHash();
+    auto blackToMoveStart = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1");
+    auto blackToMoveHash = blackToMoveStart.getHash();
+    ASSERT_NE(hashAtInit,blackToMoveHash);
+
+    // after move
+    auto boardPreMove = Board();
+    board.makeMove(moveFromNotation("e2e4"));
+    auto hashViaMove = board.getHash();
+    auto boardPostMove = Board("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+    auto boardMoveFlipped = Board("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e3 0 1");
+    ASSERT_EQ(hashViaMove,boardPostMove.getHash());
+    ASSERT_NE(hashViaMove,boardMoveFlipped.getHash());
+}
