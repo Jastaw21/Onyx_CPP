@@ -37,6 +37,8 @@ public:
             monitoring_ = true;
             timerThread_ = std::thread(&SearchController::monitorTime, this);
         }
+
+        age++;
     }
 
     void stop(){
@@ -50,6 +52,7 @@ public:
 
     TranspositionTable& transpositionTable(){ return transpositionTable_; }
     SearchResults results() const{ return worker_->getLastResults(); }
+    int getAge() const{ return age; }
 
 private:
 
@@ -59,6 +62,7 @@ private:
     Timer timer_;
     Board& board_;
     TranspositionTable transpositionTable_;
+    int age =0;
 
     std::thread timerThread_;
     std::atomic<bool> monitoring_{false};

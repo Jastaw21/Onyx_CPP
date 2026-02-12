@@ -11,8 +11,9 @@
 #include "MoveGenerator.h"
 #include "MoveList.h"
 #include "Referee.h"
+#include "SearchController.h"
 
-static constexpr int INF = 30000;
+
 
 SearchResults Searcher::search(const SearchOptions& options){
     bestScore = -INF;
@@ -78,6 +79,18 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         return qEval;
     }
 
+    auto hash = board.getHash();
+    // seee if there's another search that has evaluated where this current position leads to, it needs to have gone at least to the same depth as we're going to
+    auto ttEval = controller_->transpositionTable().Lookup(hash, depthRemaining,alpha,beta);
+
+    if (ttEval.completed) {
+        if (depthFromRoot == 0) {
+            bestScore = ttEval.score;
+            bestMove = controller_->transpositionTable().Lookup(hash).move;
+        }
+        return SearchFlag{ttEval.score, true};
+    }
+
 
     const bool isInCheck = Referee::IsInCheck(board, board.whiteToMove());
 
@@ -85,6 +98,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     MoveGenerator::GenerateMoves(board, moves);
 
     int legalMoveCount = 0;
+    Bounds storingBounds = Bounds::UPPER_BOUND;
 
     for (auto move: moves) {
         statistics_.nodes++;
@@ -104,10 +118,12 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
 
         if (eval >= beta) {
             statistics_.betaCutoffs++;
+            controller_->transpositionTable().Store(board.getHash(),move,eval,Bounds::LOWER_BOUND,depthFromRoot,controller_->getAge());
             return SearchFlag{beta, true};
         }
 
         if (eval > alpha) {
+            storingBounds = Bounds::EXACT; // we know the exact value here
             alpha = eval;
             pvTable[depthFromRoot][0] = move;
             for (int i = 0; i < pvLength[depthFromRoot + 1]; ++i)
@@ -115,13 +131,13 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
 
             pvLength[depthFromRoot] = pvLength[depthFromRoot + 1] + 1;
 
-
             if (depthFromRoot == 0) {
                 bestMove = move;
                 bestScore = eval;
             }
         }
     }
+    controller_->transpositionTable().Store(board.getHash(),bestMove,alpha,storingBounds,depthFromRoot,controller_->getAge());
 
     // got a score
     if (legalMoveCount > 0)
@@ -179,5 +195,17 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
     if (isInCheck && !hasLegalMove)
         return SearchFlag{-20000 + depthFromRoot, true};
     return SearchFlag{alpha, true};
+}
+
+int Searcher::DecodeMateScore(int score, int depthFromRoot){
+    if (score > MATE - 500) return score - depthFromRoot;
+    if (score < -(MATE-500)) return score + depthFromRoot;
+    return score;
+}
+
+int Searcher::EncodeMateScore(int score, int depthFromRoot){
+    if (score > MATE - 500) return score + depthFromRoot;
+    if (score < -(MATE-500)) return score - depthFromRoot;
+    return score;
 }
 

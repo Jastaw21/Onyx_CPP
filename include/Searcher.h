@@ -10,6 +10,8 @@
 #include "CancellationToken.h"
 #include "Move.h"
 #include "TimeControl.h"
+
+
 class SearchController;
 static constexpr int MAX_PLY = 64;
 using PVTable = Move[MAX_PLY][MAX_PLY];
@@ -69,6 +71,9 @@ private:
 
     Move pvTable[MAX_PLY][MAX_PLY]{{Move()}};
     PVLength pvLength{};
+
+    int DecodeMateScore(int score, int depthFromRoot);
+    int EncodeMateScore(int score, int depthFromRoot);
 };
 
 

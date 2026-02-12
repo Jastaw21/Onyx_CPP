@@ -157,5 +157,13 @@ void fillRandomArray(ArrayType* array, std::mt19937& rng) {
     }
 }
 
+constexpr int MATE = 20000;
+constexpr int INF = 30000;
+inline bool isMateScore(const int score){ return std::abs(score) >= MATE; }
+inline int correctedMatedScore(const int score, const int plyFromRoot){
+    if (!isMateScore(score)) return score;
+    if (score > 0) return score - plyFromRoot;
+    return score + plyFromRoot;
+}
 
 #endif //ONYXCPP_UTILS_H
