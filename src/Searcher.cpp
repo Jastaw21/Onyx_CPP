@@ -104,8 +104,12 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     MoveGenerator::GenerateMoves(board, moves);
 
     int legalMoveCount = 0;
+
+    // by default - set upper bound. Onlu if we've improved on alpha (or get a beta cutoff) will this change
+    // so if it's unchanged, we've searched all nodes, and lnow that this score is the best we can get
     Bounds storingBounds = Bounds::UPPER_BOUND;
 
+    Move bestMoveInThisNode = Move();
     for (auto move: moves) {
         statistics_.nodes++;
         if (!Referee::MoveIsLegal(board, move))
@@ -131,6 +135,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         if (eval > alpha) {
             storingBounds = Bounds::EXACT; // we know the exact value here
             alpha = eval;
+            bestMoveInThisNode = move;
             pvTable[depthFromRoot][0] = move;
             for (int i = 0; i < pvLength[depthFromRoot + 1]; ++i)
                 pvTable[depthFromRoot][i + 1] = pvTable[depthFromRoot + 1][i];
@@ -143,7 +148,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
             }
         }
     }
-    controller_->transpositionTable().Store(board.getHash(),bestMove,alpha,storingBounds,depthFromRoot,controller_->getAge());
+    controller_->transpositionTable().Store(board.getHash(),bestMoveInThisNode,alpha,storingBounds,depthFromRoot,controller_->getAge());
 
     // got a score
     if (legalMoveCount > 0)
