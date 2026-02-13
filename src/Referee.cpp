@@ -131,6 +131,20 @@ bool Referee::SquareAttacked(const Square square, const Board& board, const bool
     return false;
 }
 
+bool Referee::isRepetition(Board& board){
+    if (board.History().size() < 2) return false;
+    auto currentHash = board.getHash();
+    auto historyEntries = board.History().size();
+    auto firstToSearch = historyEntries -1;
+    auto hmCutoff = board.History().size() - board.halfMoves();
+
+    for (auto i = firstToSearch; i > hmCutoff; i--) {
+        const auto previousHash = board.History()[i].hash;
+        if (currentHash == previousHash) return true;
+    }
+    return false;
+}
+
 bool Referee::fullLegalityCheck(Board& board, const Move move){
     board.makeMove(move);
     const bool result = IsInCheck(board, !board.whiteToMove());

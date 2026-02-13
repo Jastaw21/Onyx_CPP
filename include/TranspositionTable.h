@@ -30,7 +30,7 @@ struct TTEntry {
     int age = 0;
 
     bool isValid() const { return key != 0; }
-    bool trust(const int depth_, const int alpha, const int beta, const ZobristHash hash) const;
+    bool trust(int depth_, int alpha, int beta, ZobristHash hash) const;
 };
 
 struct TTEval {
@@ -63,8 +63,10 @@ class TranspositionTable {
 public:
     explicit TranspositionTable(int sizeInMb);
     void Store(ZobristHash key, Move move, int score, Bounds bound, int depth, int age);
+    void Store(TTEntry entry);
     TTEntry Lookup(ZobristHash key) const;
     TTEval Lookup(ZobristHash key, int depthRemaining, int alpha, int beta);
+    TTEntry* GetEntry(ZobristHash key);
     void Log() {stats.PrintStats();}
 
 private:

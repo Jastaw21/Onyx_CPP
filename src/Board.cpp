@@ -161,8 +161,8 @@ void Board::makeMove(const Move& move_){
 
 void Board::unmakeMove(const Move& move){
     // restore history
-    const auto lastState = history_.top();
-    history_.pop();
+    const auto lastState = history_.back();
+    history_.pop_back();
     zobrist_ = lastState.hash;
     castlingRights_ = lastState.castlingRights;
     enPassantSquare_ = lastState.enPassantSquare;
@@ -352,5 +352,5 @@ void Board::pushHistory(const Piece capturedPiece){
                 .hash = zobrist_, .castlingRights = castlingRights_, .enPassantSquare = enPassantSquare_,
                 .halfMoves = halfMoves_, .fullMoves = fullMoves_, .capturedPiece = capturedPiece
             };
-    history_.push(currentState);
+    history_.push_back(currentState);
 }

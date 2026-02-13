@@ -120,6 +120,8 @@ void TranspositionTable::Store(const ZobristHash key, const Move move, int score
     }
 }
 
+void TranspositionTable::Store(TTEntry entry){ Store(entry.key, entry.move, entry.score, entry.bound, entry.depth, entry.age); }
+
 TTEntry TranspositionTable::Lookup(const ZobristHash key) const{
     const uint64_t index = key & indexMask;
     auto entry = table[index];
@@ -171,4 +173,10 @@ TTEval TranspositionTable::Lookup(const ZobristHash key, const int depthRemainin
     }
 
     return TTEval::Failed(); // no match;
+}
+
+TTEntry* TranspositionTable::GetEntry(ZobristHash key){
+    const uint64_t index = key & indexMask;
+    if (key == table[index].key) return &table[index];
+    return nullptr;
 }

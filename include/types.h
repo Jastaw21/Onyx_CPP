@@ -39,7 +39,7 @@ struct Statistics {
     void Log() const{
         std::cerr << "ENGINE\n Nodes: " << std::to_string(nodes) << " QNodes: " << std::to_string(qNodes) << " ebf : "
                 << std::to_string(ebf()) << " betaCutoffs: " << std::to_string(betaCutoffs) << " hash cut: " <<
-                std::to_string(hashCutoffs) << " empty TT" << std::to_string(emptyTTMoves) << " total tt " << std::to_string(totalTTMoves) <<  std::endl;
+                std::to_string(hashCutoffs) << " empty TT " << std::to_string(emptyTTMoves) << " total tt " << std::to_string(totalTTMoves) <<  std::endl;
     }
 };
 
