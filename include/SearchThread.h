@@ -24,6 +24,16 @@ public:
                                                                               thread(&SearchThread::loop, this), controller_(controller)
     {}
 
+    ~SearchThread() {
+        {
+            std::lock_guard lock(mutex);
+            exiting = true;
+        }
+        cv.notify_one();
+        if (thread.joinable())
+            thread.join();
+    }
+
     void Start(SearchOptions& options){ {
             std::lock_guard lock(mutex);
             options_ = options;

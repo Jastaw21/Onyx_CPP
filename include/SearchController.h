@@ -30,6 +30,12 @@ public:
             timerThread_.join();
     }
 
+    ~SearchController() {
+        monitoring_ = false;
+        if (timerThread_.joinable())
+            timerThread_.join();
+    }
+
     TranspositionTable& transpositionTable(){ return transpositionTable_; }
     SearchResults results() const{ return worker_->getLastResults(); }
     int getAge() const{ return age; }
