@@ -39,17 +39,38 @@ struct TTEval {
     static TTEval Failed(){ return TTEval{0, false}; }
 };
 
+struct TTStats {
+    uint64_t attemptedStores =0;
+    uint64_t empties = 0;
+    uint64_t ageReplaced = 0;
+    uint64_t depthReplaced = 0;
+
+    uint64_t attemptedLookups = 0;
+    uint64_t notFound = 0;
+    uint64_t collisions = 0;
+    uint64_t depthInsufficient = 0;
+
+    uint64_t exact = 0;
+    uint64_t lowerBound = 0;
+    uint64_t upperBound = 0;
+
+    void PrintStats();
+
+};
+
 class TranspositionTable {
 
 public:
     explicit TranspositionTable(int sizeInMb);
     void Store(ZobristHash key, Move move, int score, Bounds bound, int depth, int age);
     TTEntry Lookup(ZobristHash key) const;
-    TTEval Lookup(ZobristHash key, int depthFromRoot, int alpha, int beta) const;
+    TTEval Lookup(ZobristHash key, int depthRemaining, int alpha, int beta);
+    void Log() {stats.PrintStats();}
 
 private:
     std::vector<TTEntry> table;
     uint64_t indexMask;
+    TTStats stats{};
 };
 
 

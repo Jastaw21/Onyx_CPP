@@ -80,21 +80,16 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     }
 
     auto hash = board.getHash();
-    // see if there's another search that has evaluated where this current position leads to, it needs to have gone at least to the same depth as we're going to
-    auto ttEval = controller_->transpositionTable().Lookup(hash, depthRemaining,alpha,beta);
+    auto ttEntry = controller_->transpositionTable().Lookup(hash);
+    auto ttEval = controller_->transpositionTable().Lookup(hash, depthRemaining, alpha, beta);
 
     if (ttEval.completed) {
-
-        auto ttMove = controller_->transpositionTable().Lookup(hash).move;
-        if (Referee::MoveIsLegal(board,ttMove)) {
-            if (depthFromRoot == 0 ) {
-                bestScore = ttEval.score;
-                bestMove = ttMove;
-
-            }
-            return SearchFlag{ttEval.score, true};
+        if (depthFromRoot == 0) {
+            bestScore = ttEval.score;
+            bestMove = ttEntry.move;
         }
-
+        statistics_.hashCutoffs++;
+        return SearchFlag{ttEval.score, true};
     }
 
 
@@ -110,7 +105,45 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     Bounds storingBounds = Bounds::UPPER_BOUND;
 
     Move bestMoveInThisNode = Move();
+    bool ttMoveTried = false;
+    if (ttEntry.isValid() && Referee::MoveIsLegal(board, ttEntry.move)) {
+        bestMoveInThisNode = ttEntry.move;
+        ttMoveTried = true;
+
+        statistics_.nodes++;
+        pvLength[depthFromRoot + 1] = 0;
+        legalMoveCount++;
+        board.makeMove(ttEntry.move);
+        const auto childResult = DoSearch(depthRemaining - 1, depthFromRoot + 1, -beta, -alpha);
+        board.unmakeMove(ttEntry.move);
+
+        if (!childResult.completed) return SearchFlag::Abort();
+
+        const auto eval = -childResult.score;
+
+        if (eval >= beta) {
+            statistics_.betaCutoffs++;
+            controller_->transpositionTable().Store(board.getHash(), ttEntry.move, eval, Bounds::LOWER_BOUND, depthRemaining, controller_->getAge());
+            return SearchFlag{beta, true};
+        }
+
+        if (eval > alpha) {
+            storingBounds = Bounds::EXACT;
+            alpha = eval;
+            pvTable[depthFromRoot][0] = ttEntry.move;
+            for (int i = 0; i < pvLength[depthFromRoot + 1]; ++i)
+                pvTable[depthFromRoot][i + 1] = pvTable[depthFromRoot + 1][i];
+            pvLength[depthFromRoot] = pvLength[depthFromRoot + 1] + 1;
+
+            if (depthFromRoot == 0) {
+                bestMove = ttEntry.move;
+                bestScore = eval;
+            }
+        }
+    }
+
     for (auto move: moves) {
+        if (ttMoveTried && move == ttEntry.move) continue;
         statistics_.nodes++;
         if (!Referee::MoveIsLegal(board, move))
             continue;
@@ -128,7 +161,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
 
         if (eval >= beta) {
             statistics_.betaCutoffs++;
-            controller_->transpositionTable().Store(board.getHash(),move,eval,Bounds::LOWER_BOUND,depthFromRoot,controller_->getAge());
+            controller_->transpositionTable().Store(board.getHash(),move,eval,Bounds::LOWER_BOUND,depthRemaining,controller_->getAge());
             return SearchFlag{beta, true};
         }
 
@@ -148,7 +181,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
             }
         }
     }
-    controller_->transpositionTable().Store(board.getHash(),bestMoveInThisNode,alpha,storingBounds,depthFromRoot,controller_->getAge());
+    controller_->transpositionTable().Store(board.getHash(),bestMoveInThisNode,alpha,storingBounds,depthRemaining,controller_->getAge());
 
     // got a score
     if (legalMoveCount > 0)

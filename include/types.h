@@ -6,6 +6,7 @@
 #define ONYXCPP_TYPES_H
 #include <cstdint>
 #include <functional>
+#include <iostream>
 #include <string>
 
 struct SearchInfo;
@@ -27,6 +28,11 @@ struct Statistics {
     uint64_t nodes = 0;
     uint64_t qNodes = 0;
     uint64_t betaCutoffs = 0;
+    int hashCutoffs = 0;
+
+    void Log() const{
+        std::cerr << "Nodes: " << std::to_string(nodes) << "QNodes: " << std::to_string(qNodes) << "betaCutoffs: " << std::to_string(betaCutoffs) << "hash cut: " << std::to_string(hashCutoffs) << std::endl;
+    }
 };
 
 

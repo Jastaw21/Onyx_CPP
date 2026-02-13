@@ -4,6 +4,8 @@
 
 #include "../include/TranspositionTable.h"
 
+#include <iostream>
+
 #include "utils.h"
 
 bool TTEntry::trust(const int depth_, const int alpha, const int beta, const ZobristHash hash) const{
@@ -13,10 +15,63 @@ bool TTEntry::trust(const int depth_, const int alpha, const int beta, const Zob
     switch (bound) {
         case NONE: return false; // carry over should never happen
         case EXACT: return true;
-        case UPPER_BOUND: return score <= alpha; {}
+        case UPPER_BOUND: return score <= alpha;
         case LOWER_BOUND: return score >= beta;
     }
     return false;
+}
+
+void TTStats::PrintStats(){
+    std::string result;
+
+    result += "TTStats\n";
+    result += "Attempted Stores: ";
+    result += std::to_string(attemptedStores);
+    result += ", ";
+
+    result += "Empties: ";
+    result += std::to_string(empties);
+    result += ", ";
+
+    result += "Age Replaced: ";
+    result += std::to_string(ageReplaced);
+    result += ", ";
+
+    result += "Depth Replaced: ";
+    result += std::to_string(depthReplaced);
+    result += ", ";
+
+    result += "Attempted Lookups: ";
+    result += std::to_string(attemptedLookups);
+    result += ", ";
+
+    result += "Not Found: ";
+    result += std::to_string(notFound);
+    result += ", ";
+
+    result += "Collisions: ";
+    result += std::to_string(collisions);
+    result += ", ";
+
+    result += "Depth Misses: ";
+    result += std::to_string(depthInsufficient);
+    result += ", ";
+
+    result += "Exact: ";
+    result += std::to_string(exact);
+    result += ", ";
+
+    result += "lower: ";
+    result += std::to_string(lowerBound);
+    result += ", ";
+
+    result += "upper: ";
+    result += std::to_string(upperBound);
+    result += ", ";
+
+    result += "\n";
+
+    std::cerr << result;
 }
 
 TranspositionTable::TranspositionTable(const int sizeInMb){
@@ -35,22 +90,34 @@ TranspositionTable::TranspositionTable(const int sizeInMb){
     indexMask = v - 1ULL;
 }
 
-void TranspositionTable::Store(const ZobristHash key, const Move move, const int score, const Bounds bound, const int depth, const int age){
+void TranspositionTable::Store(const ZobristHash key, const Move move, int score, const Bounds bound, const int depth,
+                               const int age){
     const uint64_t index = key & indexMask;
     const auto existingEntry = table[index];
-    const TTEntry newEntry{key, move, score, bound,depth,age};
+    stats.attemptedStores++;
+
+    const TTEntry newEntry{key, move, score, bound, depth, age};
 
     // empty - always replace
     if (existingEntry.key == 0) {
         table[index] = newEntry;
+        stats.empties++;
         return;
     }
 
     // always replace on greater depth
-    if (existingEntry.depth < depth) { table[index] = newEntry; return; }
+    if (existingEntry.depth < depth) {
+        table[index] = newEntry;
+        stats.depthReplaced++;
+        return;
+    }
 
     // always replace a new search "age"
-    if (existingEntry.age != age) {table[index] = newEntry; return;}
+    if (existingEntry.age != age) {
+        stats.ageReplaced++;
+        table[index] = newEntry;
+        return;
+    }
 }
 
 TTEntry TranspositionTable::Lookup(const ZobristHash key) const{
@@ -60,20 +127,48 @@ TTEntry TranspositionTable::Lookup(const ZobristHash key) const{
     return entry;
 }
 
-TTEval TranspositionTable::Lookup(const ZobristHash key, const int depthFromRoot, const int alpha, const int beta) const{
+TTEval TranspositionTable::Lookup(const ZobristHash key, const int depthRemaining, const int alpha,
+                                  const int beta){
     const uint64_t index = key & indexMask;
     auto entry = table[index];
 
-    if (entry.key == 0) return TTEval::Failed(); // empty
-    if (entry.key != key) return TTEval::Failed(); // key doesnt match
-    if (entry.depth < depthFromRoot) return TTEval::Failed(); // not deep enough
+    stats.attemptedLookups++;
 
-    const auto mateAdjustedScore = correctedMatedScore(entry.score, depthFromRoot);
-    entry.score = mateAdjustedScore;
+    // empty
+    if (entry.key == 0) {
+        stats.notFound++;
+        return TTEval::Failed();
+    }
 
-    if (entry.bound == EXACT) return TTEval{mateAdjustedScore, true}; // exact match
-    if (entry.bound == UPPER_BOUND && mateAdjustedScore <= alpha) return TTEval{mateAdjustedScore, true}; // upper bound
-    if (entry.bound == LOWER_BOUND && mateAdjustedScore >= beta) return TTEval{mateAdjustedScore, true}; // lower bound
+    // key doesnt match
+    if (entry.key != key) {
+        stats.collisions++;
+        return TTEval::Failed();
+    }
+
+    // not deep enough
+    if (entry.depth < depthRemaining) {
+        stats.depthInsufficient++;
+        return TTEval::Failed();
+    }
+
+    const auto score = entry.score;
+
+    // exact match
+    if (entry.bound == EXACT) {
+        stats.exact++;
+        return TTEval{score, true};
+    }
+    // upper bound
+    if (entry.bound == UPPER_BOUND && score <= alpha) {
+        stats.upperBound++;
+        return TTEval{score, true};
+    }
+    // lower bound
+    if (entry.bound == LOWER_BOUND && score >= beta) {
+        stats.lowerBound++;
+        return TTEval{score, true};
+    }
 
     return TTEval::Failed(); // no match;
 }

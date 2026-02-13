@@ -51,6 +51,7 @@ public:
 
     SearchResults search(const SearchOptions& options);
     Board& GetBoard() const{ return board; }
+    void Log() const {statistics_.Log();}
 
 private:
 
