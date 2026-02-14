@@ -82,10 +82,12 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         if (canUse) {
             statistics_.hashCutoffs++;
             bool isNullMove = tt->move.isNullMove();
-            if (depthFromRoot == 0  && !isNullMove)
+            bool isLegal = Referee::MoveIsLegal(board, tt->move);
+            if (depthFromRoot == 0  && !isNullMove && isLegal)
                 bestMove = tt->move;
-            if (!isNullMove)
+            if (!isNullMove && isLegal)
                 return SearchFlag{adjMateScore, true};
+            else statistics_.emptyTTMoves++;
         }
     }
 
