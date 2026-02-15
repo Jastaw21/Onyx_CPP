@@ -126,7 +126,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
 
         if (eval >= beta) {
             statistics_.betaCutoffs++;
-            controller_->transpositionTable().Store(board.getHash(),move,eval,UPPER_BOUND,depthRemaining,controller_->getAge());
+            controller_->transpositionTable().Store(board.getHash(),move,eval,LOWER_BOUND,depthRemaining,controller_->getAge());
             return SearchFlag{beta, true};
         }
 

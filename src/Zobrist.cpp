@@ -56,25 +56,25 @@ void Zobrist::applyMove(uint64_t& currentHash, const Move& move, const Piece pie
 
     // the piece has moved
     currentHash ^= pieceHashes[pieceMoved.index()][move.from()];
-    if (!move.isPromotion()) // don't set the to square in case of promotion, yet
-        currentHash ^= pieceHashes[pieceMoved.index()][move.to()];
+    currentHash ^= pieceHashes[pieceMoved.index()][move.to()];
 
     // bin off the captured piece
     if (captured.exists()) currentHash   ^= pieceHashes[captured.index()][capturedOn];
 
     if (move.isPromotion()) {
         auto promotedPiece = Piece(move.promotionType(), pieceMoved.colour());
+        currentHash ^= pieceHashes[pieceMoved.index()][move.to()];
         currentHash ^= pieceHashes[promotedPiece.index()][move.to()];
     }
 
     else if (move.flags() & Castling) {
-        auto moveRaf = squareToRankAndFile(move.from());
+        auto toRaf = squareToRankAndFile(move.to());
         auto rookMoved = pieceMoved.colour() == White ? Piece(Rook, White) : Piece(Rook, Black);
-        auto rookOriginFile = moveRaf.file == 2 ? 0 : 7; // get the correct sided rook
-        auto rookOriginSquare = rankAndFileToSquare(moveRaf.rank, rookOriginFile);
+        auto rookOriginFile = toRaf.file == 2 ? 0 : 7; // get the correct sided rook
+        auto rookOriginSquare = rankAndFileToSquare(toRaf.rank, rookOriginFile);
 
-        auto rookTargetFile = moveRaf.file == 2 ? 3 : 5; // get the correct sided rook
-        auto rookTargetSquare = rankAndFileToSquare(moveRaf.rank, rookTargetFile);
+        auto rookTargetFile = toRaf.file == 2 ? 3 : 5; // get the correct sided rook
+        auto rookTargetSquare = rankAndFileToSquare(toRaf.rank, rookTargetFile);
 
         currentHash ^= pieceHashes[rookMoved.index()][rookOriginSquare];
         currentHash ^= pieceHashes[rookMoved.index()][rookTargetSquare];

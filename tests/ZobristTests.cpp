@@ -43,6 +43,16 @@ TEST(Zobrist, Castling){
     ASSERT_EQ(boardPostMove.getHash(),board.getHash());
 }
 
+TEST(Zobrist, CastlingQueenside){
+    // white can castle queenside
+    auto board = Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+    auto castlingMove = Move(4,2,Castling);
+    board.makeMove(castlingMove);
+
+    auto boardPostMove = Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/2KR3R b kq - 1 1");
+    ASSERT_EQ(boardPostMove.getHash(),board.getHash());
+}
+
 TEST(Zobrist,WhiteToMove){
 
     // at init
@@ -53,11 +63,37 @@ TEST(Zobrist,WhiteToMove){
     ASSERT_NE(hashAtInit,blackToMoveHash);
 
     // after move
-    auto boardPreMove = Board();
+    board = Board();
     board.makeMove(moveFromNotation("e2e4"));
     auto hashViaMove = board.getHash();
     auto boardPostMove = Board("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
     auto boardMoveFlipped = Board("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e3 0 1");
     ASSERT_EQ(hashViaMove,boardPostMove.getHash());
     ASSERT_NE(hashViaMove,boardMoveFlipped.getHash());
+}
+
+TEST(Zobrist, ConsistencyTest) {
+    Board board;
+    std::vector<std::string> moves = {"e2e4", "e7e5", "g1f3", "b8c6", "f1b5", "a7a6", "b5a4", "g8f6", "e1g1"};
+
+    for (const auto& moveStr : moves) {
+        Move move = moveFromNotation(moveStr);
+        board.addMoveFlags(move);
+        board.makeMove(move);
+        ASSERT_EQ(board.getHash(), Zobrist::fromBoard(&board)) << "Hash mismatch after move " << moveStr;
+    }
+
+    // Promotion
+    board.loadFen("8/4P3/8/8/8/k7/8/K7 w - - 0 1");
+    Move promo = moveFromNotation("e7e8q");
+    promo.addFlag(PromotionQueen);
+    board.makeMove(promo);
+    ASSERT_EQ(board.getHash(), Zobrist::fromBoard(&board)) << "Hash mismatch after promotion";
+
+    // En passant
+    board.loadFen("rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3");
+    Move ep = moveFromNotation("e5f6");
+    ep.addFlag(EnPassant);
+    board.makeMove(ep);
+    ASSERT_EQ(board.getHash(), Zobrist::fromBoard(&board)) << "Hash mismatch after en passant";
 }

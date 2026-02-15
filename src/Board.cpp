@@ -34,21 +34,13 @@ void Board::updateCastlingRights(const Piece pieceMoved, const RankAndFile moveF
             castlingRights_ &= ~(FenHelpers::WhiteKingside | FenHelpers::WhiteQueenside);
         else { castlingRights_ &= ~(FenHelpers::BlackKingside | FenHelpers::BlackQueenside); }
     }
-    // moving a rook also loses castling rights
+    // moving a rook also loses castling rights - only if from original square
     if (pieceMoved.type() == Rook) {
-        const bool isKingSideLoss = moveFrom.file == 7;
-        const bool isQueenSideLoss = moveFrom.file == 0;
-        if (pieceMoved.colour() == White) {
-            if (isKingSideLoss)
-                castlingRights_ &= ~FenHelpers::WhiteKingside;
-            if (isQueenSideLoss)
-                castlingRights_ &= ~FenHelpers::WhiteQueenside;
-        } else {
-            if (isKingSideLoss)
-                castlingRights_ &= ~FenHelpers::BlackKingside;
-            if (isQueenSideLoss)
-                castlingRights_ &= ~FenHelpers::BlackQueenside;
-        }
+        const auto moveFromSquare = rankAndFileToSquare(moveFrom.rank, moveFrom.file);
+        if (moveFromSquare == 7) castlingRights_ &= ~FenHelpers::WhiteKingside;
+        if (moveFromSquare == 0) castlingRights_ &= ~FenHelpers::WhiteQueenside;
+        if (moveFromSquare == 63) castlingRights_ &= ~FenHelpers::BlackKingside;
+        if (moveFromSquare == 56) castlingRights_ &= ~FenHelpers::BlackQueenside;
     }
 }
 
@@ -345,6 +337,7 @@ void Board::FromFen(const Fen& fen){
     castlingRights_ = parsedFen.castlingRights;
     halfMoves_ = parsedFen.halfMoves;
     fullMoves_ = parsedFen.fullMoves;
+    zobrist_ = Zobrist::fromBoard(this);
 }
 
 void Board::pushHistory(const Piece capturedPiece){
