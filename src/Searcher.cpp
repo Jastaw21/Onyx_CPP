@@ -48,9 +48,25 @@ SearchResults Searcher::search(const SearchOptions& options){
             callback_(SearchInfo{depth, bestScore, bestMove.Data(), statistics_, pv});
         }
     }
+    bool canUse = true;
+    if (!foundValidMove) {
+        std::cerr << "info PANIC: No Legal Found\n";
+        canUse = false;
+    }
+    if (bestMove.isNullMove() && canUse) {
+        std::cerr << "info PANIC: Is Null Move\n";
+        canUse = false;
+    }
+    if (canUse && moveToNotation(bestMove) == "a1a1") {
+        std::cerr << "info PANIC: Is a1a1\n";
+        canUse = false;
+    }
+    if (canUse && !Referee::MoveIsLegal(board, bestMove)) {
+        std::cerr << "info PANIC: Is Illegal\n";
+        canUse = false;
+    }
 
-    if (!foundValidMove || bestMove.isNullMove() || moveToNotation(bestMove) == "a1a1") {
-        std::cerr << "info PANIC\n";
+    if (!canUse) {
         auto moves = MoveList();
         MoveGenerator::GenerateMoves(board, moves);
         for (const auto move: moves) {

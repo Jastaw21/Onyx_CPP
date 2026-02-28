@@ -43,11 +43,11 @@ public:
 private:
 
     CancellationToken token_;
+    TranspositionTable transpositionTable_;
     std::unique_ptr<SearchThread> worker_;
     InfoCallback cb;
     Timer timer_;
     Board& board_;
-    TranspositionTable transpositionTable_;
     int age =0;
 
     std::thread timerThread_;

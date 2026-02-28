@@ -7,6 +7,7 @@
 #include "Zobrist.h"
 #include "Board.h"
 #include "CLIBot.h"
+#include "Fen.h"
 
 
 TEST(Zobrist, UndoIsStable){
@@ -101,9 +102,13 @@ TEST(Zobrist, ConsistencyTest) {
 
 TEST(Zobrist,StaysStableInSearch){
     auto player = CliBot();
+    auto parser = UCIParser();
+    auto com = parser.parse("position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+    player.HandleCommand(com.value());
     auto hashNow = player.GetBoard().getHash();
+
     auto go = GoCommand{
-        6,{0,0,0,0}
+        10,{0,0,0,0}
     };
     player.HandleCommand(go);
     auto hashAfter = player.GetBoard().getHash();

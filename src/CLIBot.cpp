@@ -50,5 +50,5 @@ void CliBot::onPosition(const PositionCommand& command){
 }
 void CliBot::onNewGame(const NewGameCommand&){}
 void CliBot::onPrintDebug(PrintDebugCommand printDebugCommand){
-    std::cout << board_.getFen() << std::endl;
+    std::cout <<std::to_string( board_.getHash()) << " " << board_.getFen() << std::endl;
 }

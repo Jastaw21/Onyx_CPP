@@ -4,11 +4,10 @@
 
 #include "../include/SearchController.h"
 
-SearchController::SearchController(Board& board) : worker_(std::make_unique<SearchThread>(
+SearchController::SearchController(Board& board) : board_(board), transpositionTable_(512), worker_(std::make_unique<SearchThread>(
                                                        board, this, [this](const SearchInfo& info) {
                                                            onDepthComplete(info);
-                                                       })),
-                                                   board_(board), transpositionTable_(512){}
+                                                       })){}
 
 
 void SearchController::start(SearchOptions& options){

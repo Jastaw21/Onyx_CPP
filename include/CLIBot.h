@@ -41,9 +41,9 @@ public:
 
 private:
 
+    Board board_;
     SearchController controller_;
     std::string ID = "OnyxCPP v0.0";
-    Board board_;
     void onDepthComplete(SearchInfo& info);
 
     void onUCI(const UCICommand&);
