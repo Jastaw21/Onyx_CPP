@@ -19,6 +19,7 @@ Overloaded(Ts...) -> Overloaded<Ts...>;
 class CliBot {
 public:
     CliBot() : controller_(board_) {}
+    Board& GetBoard() { return board_; }
 
 
     // clang-format off
@@ -40,9 +41,9 @@ public:
 
 private:
 
+    Board board_;
     SearchController controller_;
     std::string ID = "OnyxCPP v0.0";
-    Board board_;
     void onDepthComplete(SearchInfo& info);
 
     void onUCI(const UCICommand&);

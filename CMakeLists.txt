@@ -37,6 +37,10 @@ add_library(OnyxCoreLib
         include/CancellationToken.h
         src/SearchThread.cpp
         include/SearchThread.h
+        src/TranspositionTable.cpp
+        include/TranspositionTable.h
+        include/Zobrist.h
+        src/Zobrist.cpp
 )
 add_subdirectory(tests)
 target_include_directories(OnyxCoreLib

@@ -48,6 +48,9 @@ return false;
 bool Referee::MoveIsLegal(Board& board, const Move move){
     const auto pieceMoved = board.pieceAtSquare(move.from());
 
+    if (!pieceMoved.exists()) return false;
+    if (pieceMoved.colour() != (board.whiteToMove() ? White : Black)) return false;
+
     if (pieceMoved.type() == King) { return fullLegalityCheck(board, move); }
 
     const bool isWhite = pieceMoved.isWhite();
@@ -124,6 +127,20 @@ bool Referee::SquareAttacked(const Square square, const Board& board, const bool
         const auto straightAttacks = MagicBitboards::getMoves(Piece(Rook, White), square, occupancy);
         if (straightAttacks & straightThreats)
             return true;
+    }
+    return false;
+}
+
+bool Referee::isRepetition(Board& board){
+    if (board.History().size() < 2) return false;
+    const auto currentHash = board.getHash();
+    const auto historyEntries = board.History().size();
+    const auto firstToSearch = historyEntries -1;
+    const auto hmCutoff = board.History().size() - board.halfMoves();
+
+    for (auto i = firstToSearch; i > hmCutoff; i--) {
+        const auto previousHash = board.History()[i].hash;
+        if (currentHash == previousHash) return true;
     }
     return false;
 }

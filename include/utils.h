@@ -6,6 +6,7 @@
 #define ONYXCPP_UTILS_H
 
 #include <locale>
+#include <random>
 
 #include "Move.h"
 #include "Piece.h"
@@ -128,13 +129,41 @@ inline std::string moveToNotation(const Move move) {
     std::string notation;
     notation += squareToNotation(move.from());
     notation += squareToNotation(move.to());
-    if (move.isPromotion()) notation += pieceTypeToChar(move.promotedPiece());
+    if (move.isPromotion()) notation += pieceTypeToChar(move.promotionType());
     return notation;
 }
 
 constexpr Bitboard getCastlingMask(const bool forWhite, const bool forQueenside){
     if (forWhite) return forQueenside ? 0xe : 0x60;
     return forQueenside ?0xe00000000000000 :0x6000000000000000;
+}
+
+template<typename ArrayType, std::size_t FirstDim, std::size_t SecondDim = 0>
+void fillRandomArray(ArrayType* array, std::mt19937& rng) {
+    std::uniform_int_distribution<uint64_t> dist(0, UINT64_MAX);
+
+    if constexpr (SecondDim == 0) {
+        // 1D array
+        for (std::size_t i = 0; i < FirstDim; i++) {
+            array[i] = dist(rng);
+        }
+    } else {
+        // 2D array
+        for (std::size_t i = 0; i < FirstDim; i++) {
+            for (std::size_t j = 0; j < SecondDim; j++) {
+                array[i][j] = dist(rng);
+            }
+        }
+    }
+}
+
+constexpr int MATE = 20000;
+constexpr int INF = 30000;
+inline bool isMateScore(const int score){ return std::abs(score) >= MATE; }
+inline int correctedMatedScore(const int score, const int plyFromRoot){
+    if (!isMateScore(score)) return score;
+    if (score > 0) return score - plyFromRoot;
+    return score + plyFromRoot;
 }
 
 #endif //ONYXCPP_UTILS_H

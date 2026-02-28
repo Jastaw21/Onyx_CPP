@@ -15,7 +15,8 @@ public:
     static bool MoveIsLegal(Board& board, Move move);
     static bool IsInCheck(Board& board, bool forWhite);
     static bool SquareAttacked(Square square, const Board& board, bool byWhite);
-    static bool isDraw(const Board& board){return false;}
+    static bool isDraw(Board& board){return isRepetition(board) || board.halfMoves() >= 100;}
+    static bool isRepetition(Board& board);
 
 private:
 

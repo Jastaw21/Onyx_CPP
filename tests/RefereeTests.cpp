@@ -18,7 +18,6 @@ TEST(RefereeTests,IsCheck){
     auto scholarCheck = Board("rnbqkbnr/ppppp1pp/8/5p1Q/4P3/8/PPPP1PPP/RNB1KBNR b KQkq - 1 2");
     EXPECT_TRUE(Referee::IsInCheck(scholarCheck,scholarCheck.whiteToMove()));
 }
-
 TEST(RefereeTests,CantMoveIntoCheck){
     auto testBoard = Board("qrn1bnrb/pppp1ppp/N7/3k4/4p3/5B2/PPPPPPPP/QR1K1NRB b - - 0 1");
 
@@ -34,7 +33,6 @@ TEST(RefereeTests,CantMoveIntoCheck){
     auto kingIntocheck = moveFromNotation("e1f1");
     EXPECT_FALSE(Referee::MoveIsLegal(furtherTestBoard,kingIntocheck));
 }
-
 TEST(RefereeTests,DoesntNeedDoubleOnRayToNotBePin){
     auto board = Board(FenHelpers::KiwiPeteFen);
     auto c3a4 = moveFromNotation("c3a4");

@@ -8,7 +8,7 @@
 
 #include "types.h"
 #include "Piece.h"
-#include "utils.h"
+
 
 // clang-format off
 enum MoveFlags : uint8_t {
@@ -44,7 +44,7 @@ public:
     bool isPromotion() const{ return flags() & (PromotionQueen | PromotionBishop | PromotionKnight | PromotionRook); }
     uint32_t Data() const {return data_;}
 
-    PieceType promotedPiece() const{
+    PieceType promotionType() const{
         auto flag = flags();
         if (flag & PromotionQueen)
             return Queen;

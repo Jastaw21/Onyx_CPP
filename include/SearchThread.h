@@ -12,13 +12,27 @@
 #include "Board.h"
 #include "CancellationToken.h"
 #include "Searcher.h"
-#include "types.h"
+
+class SearchController;
 
 class SearchThread {
 public:
 
-    SearchThread(Board& board, std::function<void(const SearchInfo&)> callback = nullptr) : board_(board),
-        searcher_(board, token_, std::move(callback)), thread(&SearchThread::loop, this){}
+    SearchThread(Board& board, SearchController* controller,
+                 std::function<void(const SearchInfo&)> callback = nullptr) : board_(board),
+                                                                              searcher_(board, token_, controller,std::move(callback)),
+                                                                              thread(&SearchThread::loop, this), controller_(controller)
+    {}
+
+    ~SearchThread() {
+        {
+            std::lock_guard lock(mutex);
+            exiting = true;
+        }
+        cv.notify_one();
+        if (thread.joinable())
+            thread.join();
+    }
 
     void Start(SearchOptions& options){ {
             std::lock_guard lock(mutex);
@@ -34,26 +48,7 @@ public:
 
 private:
 
-    void loop(){
-        while (true) {
-            SearchOptions options; {
-                std::unique_lock lock(mutex);
-                cv.wait(lock, [&] { return searching || exiting; });
-
-                if (exiting)
-                    return;
-
-                options = options_;
-            }
-            auto res = searcher_.search(options); {
-                std::lock_guard lock(mutex);
-                lastResults = res;
-                searching = false;
-            }
-
-            std::cout << "bestmove " << moveToNotation(res.bestMove) << std::endl;
-        }
-    }
+    void loop();
 
 
     CancellationToken token_;
@@ -69,6 +64,7 @@ private:
 
     bool searching = false;
     bool exiting = false;
+    SearchController* controller_;
 };
 
 

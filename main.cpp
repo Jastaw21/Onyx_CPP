@@ -1,12 +1,13 @@
 #include <iostream>
 
 #include "CLIBot.h"
+#include "Zobrist.h"
 #include "include/Fen.h"
-#include "include/PerftRunner.h"
 
 int main(){
     CliBot engine;
     UCIParser parser;
+    Zobrist::init();
 
     std::string line;
 

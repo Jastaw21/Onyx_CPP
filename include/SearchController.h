@@ -11,6 +11,7 @@
 #include "Searcher.h"
 #include "SearchThread.h"
 #include "Timer.h"
+#include "TranspositionTable.h"
 
 
 class SearchController {
@@ -18,25 +19,8 @@ public:
 
     using InfoCallback = std::function<void(const SearchInfo&)>;
 
-    explicit SearchController(Board& board)
-        : worker_(std::make_unique<SearchThread>(board, [this](const SearchInfo& info) { onDepthComplete(info); })),
-          board_(board){}
-
-    void start(SearchOptions& options){
-        if (timerThread_.joinable())
-            timerThread_.join();
-
-        auto timePerMove = getTimePerMove(options);
-
-        timer_.start(timePerMove);
-        worker_->Start(options);
-
-        if (options.tc.isTimed()) {
-            monitoring_ = true;
-            timerThread_ = std::thread(&SearchController::monitorTime, this);
-        }
-    }
-
+    explicit SearchController(Board& board);
+    void start(SearchOptions& options);
     void stop(){
         monitoring_ = false;
 
@@ -46,15 +30,25 @@ public:
             timerThread_.join();
     }
 
+    ~SearchController() {
+        monitoring_ = false;
+        if (timerThread_.joinable())
+            timerThread_.join();
+    }
+
+    TranspositionTable& transpositionTable(){ return transpositionTable_; }
     SearchResults results() const{ return worker_->getLastResults(); }
+    int getAge() const{ return age; }
 
 private:
 
     CancellationToken token_;
+    TranspositionTable transpositionTable_;
     std::unique_ptr<SearchThread> worker_;
     InfoCallback cb;
     Timer timer_;
     Board& board_;
+    int age =0;
 
     std::thread timerThread_;
     std::atomic<bool> monitoring_{false};

@@ -26,7 +26,6 @@ struct BoardState {
 
 
 class Board {
-
     std::array<Bitboard, 12> boards_{0ULL};
     std::array<Piece, 64> board_{Piece()};
     bool whiteToMove_ = true;
@@ -34,13 +33,17 @@ class Board {
     int fullMoves_ = 0;
     uint8_t castlingRights_ = 0;
     Square enPassantSquare_ = -1;
-    std::stack<BoardState> history_;
+    std::vector<BoardState> history_;
     ZobristHash zobrist_ = 0ULL;
 
 public:
 
     Board();
     explicit Board(const Fen& fen);
+
+    // zobrist hash
+    ZobristHash getHash() const{ return zobrist_; }
+    std::vector<BoardState>& History(){ return history_; }
 
     // make/unmake
     void makeMove(const Move& move_);
@@ -58,6 +61,7 @@ public:
     Bitboard getBoardByPiece(const Piece piece) const{ return boards_[piece.index()]; }
     Piece pieceAtSquare(const Square square) const{ return board_[square]; }
     Bitboard getOccupancy() const;
+    std::array<Piece, 64>& getBoard(){ return board_; }
 
     // fen loading/gettting
     void loadFen(const Fen& fen);
