@@ -19,6 +19,7 @@ Overloaded(Ts...) -> Overloaded<Ts...>;
 class CliBot {
 public:
     CliBot() : controller_(board_) {}
+    Board& GetBoard() { return board_; }
 
 
     // clang-format off

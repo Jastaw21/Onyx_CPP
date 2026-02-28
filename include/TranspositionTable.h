@@ -63,7 +63,7 @@ class TranspositionTable {
 public:
     explicit TranspositionTable(int sizeInMb);
     void Store(ZobristHash key, Move move, int score, Bounds bound, int depth, int age);
-    void Store(TTEntry entry);
+    void Store(const TTEntry& entry);
     TTEntry Lookup(ZobristHash key) const;
     TTEval Lookup(ZobristHash key, int depthRemaining, int alpha, int beta);
     TTEntry* GetEntry(ZobristHash key);

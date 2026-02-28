@@ -52,3 +52,20 @@ TEST(MoveGen,CantCastleThroughAttackedSquares){
     EXPECT_FALSE(moves.contains(suspectMove));
 }
 
+TEST(MoveGen,DoesntIncludeCastlingInIllegalPos){
+    auto board = Board("2kr1b1r/1p2p2p/4Pp2/pNqp1Np1/P1p3P1/R3R2P/1PKB1P2/8 b - - 13 24");
+    auto moves = MoveList();
+    MoveGenerator::GenerateMoves(board,moves);
+    auto blackCastle = Move(56,40,Castling);
+    EXPECT_FALSE(moves.contains(blackCastle));
+
+    auto builtBoard = Board("r3kb1r/1p2p2p/4Pp2/p1qp1Np1/P1pN2P1/R3R2P/1PKB1P2/8 b kq - 11 23");
+    auto castlingMove = Move(60,58,Castling);
+    builtBoard.makeMove(castlingMove);
+    builtBoard.makeMove(moveFromNotation("d4d5"));
+
+    auto newMoves = MoveList();
+    MoveGenerator::GenerateMoves(builtBoard,newMoves);
+    EXPECT_FALSE(newMoves.contains(castlingMove));
+}
+

@@ -65,13 +65,13 @@ void Board::makeMove(const Move& move_){
 
     pushHistory(pieceCaptured);
 
-    auto enPassantSquarePreMove = enPassantSquare_;
+    const auto enPassantSquarePreMove = enPassantSquare_;
     // if the ep square is set, any move loses it
     const auto lastEPSquare = enPassantSquare_;
     if (enPassantSquare_ != -1)
         enPassantSquare_ = -1;
 
-    auto castlingRightsPreMove = castlingRights_;
+    const auto castlingRightsPreMove = castlingRights_;
     updateCastlingRights(pieceMoved, moveFrom);
 
     Square capturedOn = -1;
@@ -199,7 +199,7 @@ void Board::unmakeMove(const Move& move){
 }
 
 void Board::addMoveFlags(Move& move){
-    const auto pieceMoved = board_[move.to()];
+    const auto pieceMoved = board_[move.from()];
 
     if (pieceMoved.type() == Pawn && move.to() == enPassantSquare_) { move.addFlag(EnPassant); }
     if (pieceMoved.type() == King) {

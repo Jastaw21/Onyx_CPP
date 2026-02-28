@@ -73,8 +73,8 @@ private:
     Move pvTable[MAX_PLY][MAX_PLY]{{Move()}};
     PVLength pvLength{};
 
-    int DecodeMateScore(int score, int depthFromRoot);
-    int EncodeMateScore(int score, int depthFromRoot);
+    static int DecodeMateScore(int score, int depthFromRoot);
+    static int EncodeMateScore(int score, int depthFromRoot);
 };
 
 

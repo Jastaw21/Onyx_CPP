@@ -7,7 +7,7 @@
 #include "Fen.h"
 #include "utils.h"
 
-// static intialisations
+// static initialisations
 uint64_t Zobrist::whiteToMove;
 uint64_t Zobrist::enPassantSquare[64];
 uint64_t Zobrist::castlingRights[4];
@@ -61,20 +61,19 @@ void Zobrist::applyMove(uint64_t& currentHash, const Move& move, const Piece pie
     // bin off the captured piece
     if (captured.exists()) currentHash   ^= pieceHashes[captured.index()][capturedOn];
 
-    if (move.isPromotion()) {
-        auto promotedPiece = Piece(move.promotionType(), pieceMoved.colour());
-        currentHash ^= pieceHashes[pieceMoved.index()][move.to()];
+    if (move.isPromotion()) { const auto promotedPiece = Piece(move.promotionType(), pieceMoved.colour());
+        currentHash ^= pieceHashes[pieceMoved.index()][move.to()]; // undo the pawn placement on the to square
         currentHash ^= pieceHashes[promotedPiece.index()][move.to()];
     }
 
     else if (move.flags() & Castling) {
-        auto toRaf = squareToRankAndFile(move.to());
-        auto rookMoved = pieceMoved.colour() == White ? Piece(Rook, White) : Piece(Rook, Black);
-        auto rookOriginFile = toRaf.file == 2 ? 0 : 7; // get the correct sided rook
-        auto rookOriginSquare = rankAndFileToSquare(toRaf.rank, rookOriginFile);
+        const auto toRaf = squareToRankAndFile(move.to());
+        const auto rookMoved = pieceMoved.colour() == White ? Piece(Rook, White) : Piece(Rook, Black);
+        const auto rookOriginFile = toRaf.file == 2 ? 0 : 7; // get the correct sided rook
+        const auto rookOriginSquare = rankAndFileToSquare(toRaf.rank, rookOriginFile);
 
-        auto rookTargetFile = toRaf.file == 2 ? 3 : 5; // get the correct sided rook
-        auto rookTargetSquare = rankAndFileToSquare(toRaf.rank, rookTargetFile);
+        const auto rookTargetFile = toRaf.file == 2 ? 3 : 5; // get the correct sided rook
+        const auto rookTargetSquare = rankAndFileToSquare(toRaf.rank, rookTargetFile);
 
         currentHash ^= pieceHashes[rookMoved.index()][rookOriginSquare];
         currentHash ^= pieceHashes[rookMoved.index()][rookTargetSquare];

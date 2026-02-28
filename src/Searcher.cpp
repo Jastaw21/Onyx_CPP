@@ -2,7 +2,7 @@
 // Created by jacks on 08/02/2026.
 //
 
-#include "../include/Searcher.h"
+#include "Searcher.h"
 
 
 #include "Evaluator.h"
@@ -42,8 +42,7 @@ SearchResults Searcher::search(const SearchOptions& options){
 
         if (callback_) {
             std::string pv;
-            for (int i = 0; i < pvLength[0]; ++i) {
-                auto move = pvTable[0][i];
+            for (int i = 0; i < pvLength[0]; ++i) { const auto move = pvTable[0][i];
                 pv += moveToNotation(move) + ' ';
             }
             callback_(SearchInfo{depth, bestScore, bestMove.Data(), statistics_, pv});
@@ -54,9 +53,9 @@ SearchResults Searcher::search(const SearchOptions& options){
         std::cerr << "info PANIC\n";
         auto moves = MoveList();
         MoveGenerator::GenerateMoves(board, moves);
-        for (auto move : moves) {
+        for (const auto move: moves) {
             if (Referee::MoveIsLegal(board, move)) {
-                return {0, move};  // Return first legal move
+                return {0, move}; // Return first legal move
             }
         }
     }
@@ -65,15 +64,12 @@ SearchResults Searcher::search(const SearchOptions& options){
 }
 
 
-SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot, int alpha, int beta){
+SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot, int alpha, const int beta){
     if (statistics_.nodes % 2047 == 0 && token_.isStopped())
         return SearchFlag::Abort();
 
-
-
     const TTEntry* tt = controller_->transpositionTable().GetEntry(board.getHash());
-    if (tt != nullptr && tt->depth >= depthRemaining) {
-        auto adjMateScore = DecodeMateScore(tt->score, depthFromRoot);
+    if (tt != nullptr && tt->depth >= depthRemaining) { const auto adjMateScore = DecodeMateScore(tt->score, depthFromRoot);
         bool canUse = false;
         if (tt->bound == EXACT) canUse = true;
         if (tt->bound == UPPER_BOUND) canUse = adjMateScore <= alpha;
@@ -81,11 +77,11 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
 
         if (canUse) {
             statistics_.hashCutoffs++;
-            bool isNullMove = tt->move.isNullMove();
-            bool isLegal = Referee::MoveIsLegal(board, tt->move);
-            if (depthFromRoot == 0  && !isNullMove && isLegal)
+            const bool isNullMove = tt->move.isNullMove();
+            const bool isLegal = Referee::MoveIsLegal(board, tt->move);
+            if (depthFromRoot == 0 && !isNullMove && isLegal)
                 bestMove = tt->move;
-            if (!isNullMove && isLegal)
+            if (isLegal)
                 return SearchFlag{adjMateScore, true};
             else statistics_.emptyTTMoves++;
         }
@@ -118,15 +114,17 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
 
         legalMoveCount++;
         board.makeMove(move);
-        const auto childResult = DoSearch(depthRemaining - 1, depthFromRoot + 1, -beta, -alpha);
+        const auto [score, completed] = DoSearch(depthRemaining - 1, depthFromRoot + 1, -beta, -alpha);
         board.unmakeMove(move);
 
-        if (!childResult.completed) return SearchFlag::Abort();
-        const auto eval = -childResult.score;
+        if (!completed) return SearchFlag::Abort();
+        const auto eval = -score;
 
         if (eval >= beta) {
             statistics_.betaCutoffs++;
-            controller_->transpositionTable().Store(board.getHash(),move,eval,LOWER_BOUND,depthRemaining,controller_->getAge());
+
+            controller_->transpositionTable().Store(board.getHash(), move, eval, LOWER_BOUND, depthRemaining,
+                                                    controller_->getAge());
             return SearchFlag{beta, true};
         }
 
@@ -151,10 +149,10 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     if (legalMoveCount == 0) {
         if (isInCheck) score = -MATE + depthFromRoot;
         else score = 0;
-    }
-    else score = alpha;
+    } else score = alpha;
 
-    controller_->transpositionTable().Store(board.getHash(),bestMoveInNode,score,storingBound,depthRemaining,controller_->getAge());
+    controller_->transpositionTable().Store(board.getHash(), bestMoveInNode, score, storingBound, depthRemaining,
+                                            controller_->getAge());
 
     return SearchFlag{score, true};
 }
@@ -204,13 +202,13 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
     return SearchFlag{alpha, true};
 }
 
-int Searcher::DecodeMateScore(int score, int depthFromRoot){
+int Searcher::DecodeMateScore(const int score, const int depthFromRoot){
     if (score > MATE - 500) return score - depthFromRoot;
     if (score < -(MATE - 500)) return score + depthFromRoot;
     return score;
 }
 
-int Searcher::EncodeMateScore(int score, int depthFromRoot){
+int Searcher::EncodeMateScore(const int score, const int depthFromRoot){
     if (score > MATE - 500) return score + depthFromRoot;
     if (score < -(MATE - 500)) return score - depthFromRoot;
     return score;

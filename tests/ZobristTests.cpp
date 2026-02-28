@@ -6,6 +6,7 @@
 
 #include "Zobrist.h"
 #include "Board.h"
+#include "CLIBot.h"
 
 
 TEST(Zobrist, UndoIsStable){
@@ -96,4 +97,15 @@ TEST(Zobrist, ConsistencyTest) {
     ep.addFlag(EnPassant);
     board.makeMove(ep);
     ASSERT_EQ(board.getHash(), Zobrist::fromBoard(&board)) << "Hash mismatch after en passant";
+}
+
+TEST(Zobrist,StaysStableInSearch){
+    auto player = CliBot();
+    auto hashNow = player.GetBoard().getHash();
+    auto go = GoCommand{
+        6,{0,0,0,0}
+    };
+    player.HandleCommand(go);
+    auto hashAfter = player.GetBoard().getHash();
+    ASSERT_EQ(hashNow,hashAfter);
 }

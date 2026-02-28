@@ -90,7 +90,7 @@ TranspositionTable::TranspositionTable(const int sizeInMb){
     indexMask = v - 1ULL;
 }
 
-void TranspositionTable::Store(const ZobristHash key, const Move move, int score, const Bounds bound, const int depth,
+void TranspositionTable::Store(const ZobristHash key, const Move move, const int score, const Bounds bound, const int depth,
                                const int age){
     const uint64_t index = key & indexMask;
     const auto existingEntry = table[index];
@@ -120,11 +120,11 @@ void TranspositionTable::Store(const ZobristHash key, const Move move, int score
     }
 }
 
-void TranspositionTable::Store(TTEntry entry){ Store(entry.key, entry.move, entry.score, entry.bound, entry.depth, entry.age); }
+void TranspositionTable::Store(const TTEntry& entry){ Store(entry.key, entry.move, entry.score, entry.bound, entry.depth, entry.age); }
 
 TTEntry TranspositionTable::Lookup(const ZobristHash key) const{
     const uint64_t index = key & indexMask;
-    auto entry = table[index];
+    const auto entry = table[index];
     if (entry.key != key) return TTEntry{0, Move(), 0, NONE, 0, 0};
     return entry;
 }
@@ -132,7 +132,7 @@ TTEntry TranspositionTable::Lookup(const ZobristHash key) const{
 TTEval TranspositionTable::Lookup(const ZobristHash key, const int depthRemaining, const int alpha,
                                   const int beta){
     const uint64_t index = key & indexMask;
-    auto entry = table[index];
+    const auto entry = table[index];
 
     stats.attemptedLookups++;
 
@@ -175,7 +175,7 @@ TTEval TranspositionTable::Lookup(const ZobristHash key, const int depthRemainin
     return TTEval::Failed(); // no match;
 }
 
-TTEntry* TranspositionTable::GetEntry(ZobristHash key){
+TTEntry* TranspositionTable::GetEntry(const ZobristHash key){
     const uint64_t index = key & indexMask;
     if (key == table[index].key) return &table[index];
     return nullptr;

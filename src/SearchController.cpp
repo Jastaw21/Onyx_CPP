@@ -15,7 +15,7 @@ void SearchController::start(SearchOptions& options){
     if (timerThread_.joinable())
         timerThread_.join();
 
-    auto timePerMove = getTimePerMove(options);
+    const auto timePerMove = getTimePerMove(options);
 
     timer_.start(timePerMove);
     worker_->Start(options);
@@ -39,10 +39,10 @@ void SearchController::onDepthComplete(const SearchInfo& info){
 
 uint64_t SearchController::getTimePerMove(SearchOptions& options){
     bool hasTimeLimit = false;
-    auto ourTime = board_.whiteToMove() ? options.tc.wtime : options.tc.btime;
-    auto ourInc = board_.whiteToMove() ? options.tc.winc : options.tc.binc;
+    const auto ourTime = board_.whiteToMove() ? options.tc.wtime : options.tc.btime;
+    const auto ourInc = board_.whiteToMove() ? options.tc.winc : options.tc.binc;
 
-    auto plyDone = board_.fullMoves() * 2;
+    const auto plyDone = board_.fullMoves() * 2;
 
     int movesToGo = 0;
     if (plyDone < 20) movesToGo = 40;
@@ -51,8 +51,8 @@ uint64_t SearchController::getTimePerMove(SearchOptions& options){
 
     if (options.tc.movestogo != 0) movesToGo = options.tc.movestogo;
 
-    float baseTime = ourTime / movesToGo + ourInc * 0.5f;
-    auto safeMax = ourTime * 0.2f;
-    auto budget = std::min(safeMax, baseTime);
+    const float baseTime = ourTime / movesToGo + ourInc * 0.5f;
+    const auto safeMax = ourTime * 0.2f;
+    const auto budget = std::min(safeMax, baseTime);
     return budget;
 }

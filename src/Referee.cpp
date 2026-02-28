@@ -133,10 +133,10 @@ bool Referee::SquareAttacked(const Square square, const Board& board, const bool
 
 bool Referee::isRepetition(Board& board){
     if (board.History().size() < 2) return false;
-    auto currentHash = board.getHash();
-    auto historyEntries = board.History().size();
-    auto firstToSearch = historyEntries -1;
-    auto hmCutoff = board.History().size() - board.halfMoves();
+    const auto currentHash = board.getHash();
+    const auto historyEntries = board.History().size();
+    const auto firstToSearch = historyEntries -1;
+    const auto hmCutoff = board.History().size() - board.halfMoves();
 
     for (auto i = firstToSearch; i > hmCutoff; i--) {
         const auto previousHash = board.History()[i].hash;

@@ -16,7 +16,7 @@ void SearchThread::loop(){
 
             options = options_;
         }
-        auto res = searcher_.search(options);
+        const auto res = searcher_.search(options);
         std::cout << "bestmove " << moveToNotation(res.bestMove) << std::endl;
 
         //controller_->transpositionTable().Log();
