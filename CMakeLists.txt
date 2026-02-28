@@ -41,6 +41,7 @@ add_library(OnyxCoreLib
         include/TranspositionTable.h
         include/Zobrist.h
         src/Zobrist.cpp
+        src/MoveList.cpp
 )
 add_subdirectory(tests)
 target_include_directories(OnyxCoreLib
