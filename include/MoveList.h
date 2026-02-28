@@ -26,7 +26,7 @@ public:
         count_++;
     }
 
-    void sort(const Move& ttMove);
+    void sort(const Board& board, const Move& ttMove);
 
     size_t size() const{ return count_; }
     Move& operator[](const size_t i){ return moves_[i]; }
@@ -39,6 +39,9 @@ public:
     const Move* end() const{ return moves_.data() + count_; }
 
     void clear(){ count_ = 0; }
+
+private:
+    int moveScore(const Move& move, const Board& board) const;
 };
 
 

@@ -123,7 +123,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     const bool isInCheck = Referee::IsInCheck(board, board.whiteToMove());
 
     auto moves = MoveList(board,false);
-    moves.sort(ttMove);
+   moves.sort(board, ttMove);
 
     int legalMoveCount = 0;
     Bounds storingBound = UPPER_BOUND;
@@ -213,7 +213,7 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
     }
 
     auto moves = MoveList(board, !isInCheck);
-    moves.sort(ttMove);
+   moves.sort(board, ttMove);
 
     bool hasLegalMove = false;
     Move bestMoveInNode;
