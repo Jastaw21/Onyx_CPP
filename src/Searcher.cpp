@@ -84,22 +84,27 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     if (statistics_.nodes % 2047 == 0 && token_.isStopped())
         return SearchFlag::Abort();
 
+    Move ttMove;
     const TTEntry* tt = controller_->transpositionTable().GetEntry(board.getHash());
-    if (tt != nullptr && tt->depth >= depthRemaining) { const auto adjMateScore = DecodeMateScore(tt->score, depthFromRoot);
-        bool canUse = false;
-        if (tt->bound == EXACT) canUse = true;
-        if (tt->bound == UPPER_BOUND) canUse = adjMateScore <= alpha;
-        if (tt->bound == LOWER_BOUND) canUse = adjMateScore >= beta;
+    if (tt != nullptr) {
+        ttMove = tt->move;
+        if (tt->depth >= depthRemaining) {
+            const auto adjMateScore = DecodeMateScore(tt->score, depthFromRoot);
+            bool canUse = false;
+            if (tt->bound == EXACT) canUse = true;
+            if (tt->bound == UPPER_BOUND) canUse = adjMateScore <= alpha;
+            if (tt->bound == LOWER_BOUND) canUse = adjMateScore >= beta;
 
-        if (canUse) {
-            statistics_.hashCutoffs++;
-            const bool isNullMove = tt->move.isNullMove();
-            const bool isLegal = Referee::MoveIsLegal(board, tt->move);
-            if (depthFromRoot == 0 && !isNullMove && isLegal)
-                bestMove = tt->move;
-            if (isLegal)
-                return SearchFlag{adjMateScore, true};
-            else statistics_.emptyTTMoves++;
+            if (canUse) {
+                statistics_.hashCutoffs++;
+                const bool isNullMove = tt->move.isNullMove();
+                const bool isLegal = Referee::MoveIsLegal(board, tt->move);
+                if (depthFromRoot == 0 && !isNullMove && isLegal)
+                    bestMove = tt->move;
+                if (isLegal)
+                    return SearchFlag{adjMateScore, true};
+                else statistics_.emptyTTMoves++;
+            }
         }
     }
 
@@ -122,7 +127,43 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     int legalMoveCount = 0;
     Bounds storingBound = UPPER_BOUND;
     Move bestMoveInNode;
+
+    //TT move first
+    if (!ttMove.isNullMove() && Referee::MoveIsLegal(board, ttMove)) {
+        legalMoveCount++;
+        board.makeMove(ttMove);
+        const auto [score, completed] = DoSearch(depthRemaining - 1, depthFromRoot + 1, -beta, -alpha);
+        board.unmakeMove(ttMove);
+
+        if (!completed) return SearchFlag::Abort();
+        const auto eval = -score;
+
+        if (eval >= beta) {
+            statistics_.betaCutoffs++;
+            controller_->transpositionTable().Store(board.getHash(), ttMove, EncodeMateScore(eval, depthFromRoot), LOWER_BOUND, depthRemaining,
+                                                    controller_->getAge());
+            return SearchFlag{beta, true};
+        }
+
+        if (eval > alpha) {
+            bestMoveInNode = ttMove;
+            storingBound = EXACT;
+            alpha = eval;
+            pvTable[depthFromRoot][0] = ttMove;
+            for (int i = 0; i < pvLength[depthFromRoot + 1]; ++i)
+                pvTable[depthFromRoot][i + 1] = pvTable[depthFromRoot + 1][i];
+
+            pvLength[depthFromRoot] = pvLength[depthFromRoot + 1] + 1;
+
+            if (depthFromRoot == 0) {
+                bestMove = ttMove;
+                bestScore = eval;
+            }
+        }
+    }
+
     for (auto move: moves) {
+        if (move == ttMove) continue;
         statistics_.nodes++;
         if (!Referee::MoveIsLegal(board, move)) continue;
 
@@ -139,7 +180,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         if (eval >= beta) {
             statistics_.betaCutoffs++;
 
-            controller_->transpositionTable().Store(board.getHash(), move, eval, LOWER_BOUND, depthRemaining,
+            controller_->transpositionTable().Store(board.getHash(), move, EncodeMateScore(eval, depthFromRoot), LOWER_BOUND, depthRemaining,
                                                     controller_->getAge());
             return SearchFlag{beta, true};
         }
@@ -167,7 +208,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         else score = 0;
     } else score = alpha;
 
-    controller_->transpositionTable().Store(board.getHash(), bestMoveInNode, score, storingBound, depthRemaining,
+    controller_->transpositionTable().Store(board.getHash(), bestMoveInNode, EncodeMateScore(score, depthFromRoot), storingBound, depthRemaining,
                                             controller_->getAge());
 
     return SearchFlag{score, true};
@@ -176,6 +217,20 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
 SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRoot){
     if (statistics_.nodes % 2047 == 0 && token_.isStopped())
         return SearchFlag::Abort();
+
+    const TTEntry* tt = controller_->transpositionTable().GetEntry(board.getHash());
+    if (tt != nullptr) {
+        const auto adjMateScore = DecodeMateScore(tt->score, depthFromRoot);
+        bool canUse = false;
+        if (tt->bound == EXACT) canUse = true;
+        if (tt->bound == UPPER_BOUND) canUse = adjMateScore <= alpha;
+        if (tt->bound == LOWER_BOUND) canUse = adjMateScore >= beta;
+
+        if (canUse) {
+            statistics_.hashCutoffs++;
+            return SearchFlag{adjMateScore, true};
+        }
+    }
 
     const bool isInCheck = Referee::IsInCheck(board, board.whiteToMove());
     const auto standPat = Evaluator::Evaluate(board);
@@ -191,6 +246,8 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
     MoveGenerator::GenerateMoves(board, moves, !isInCheck);
 
     bool hasLegalMove = false;
+    Move bestMoveInNode;
+    Bounds storingBound = UPPER_BOUND;
 
     for (const auto move: moves) {
         statistics_.nodes++;
@@ -208,14 +265,24 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
 
         if (score >= beta) {
             statistics_.betaCutoffs++;
+            controller_->transpositionTable().Store(board.getHash(), move, EncodeMateScore(beta, depthFromRoot), LOWER_BOUND, 0, controller_->getAge());
             return SearchFlag{beta, true};
         }
 
-        if (score > alpha) { alpha = score; }
+        if (score > alpha) {
+            alpha = score;
+            bestMoveInNode = move;
+            storingBound = EXACT;
+        }
     }
+
+    int finalScore;
     if (isInCheck && !hasLegalMove)
-        return SearchFlag{-20000 + depthFromRoot, true};
-    return SearchFlag{alpha, true};
+        finalScore = -MATE + depthFromRoot;
+    else finalScore = alpha;
+
+    controller_->transpositionTable().Store(board.getHash(), bestMoveInNode, EncodeMateScore(finalScore, depthFromRoot), storingBound, 0, controller_->getAge());
+    return SearchFlag{finalScore, true};
 }
 
 int Searcher::DecodeMateScore(const int score, const int depthFromRoot){

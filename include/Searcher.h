@@ -52,6 +52,8 @@ public:
     SearchResults search(const SearchOptions& options);
     Board& GetBoard() const{ return board; }
     void Log() const {statistics_.Log();}
+    static int DecodeMateScore(int score, int depthFromRoot);
+    static int EncodeMateScore(int score, int depthFromRoot);
 
 private:
 
@@ -72,9 +74,6 @@ private:
 
     Move pvTable[MAX_PLY][MAX_PLY]{{Move()}};
     PVLength pvLength{};
-
-    static int DecodeMateScore(int score, int depthFromRoot);
-    static int EncodeMateScore(int score, int depthFromRoot);
 };
 
 
