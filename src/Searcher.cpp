@@ -131,7 +131,6 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     Move bestMoveInNode;
 
     for (auto move: moves) {
-
         statistics_.nodes++;
         if (!Referee::MoveIsLegal(board, move)) continue;
 
@@ -216,7 +215,7 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
     }
 
     auto moves = MoveList(board, !isInCheck);
-    //moves.sort(board, ttMove);
+    moves.sort(board, ttMove);
 
     bool hasLegalMove = false;
     Move bestMoveInNode;
