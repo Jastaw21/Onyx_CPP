@@ -12,19 +12,23 @@
 #include "SearchController.h"
 
 
-SearchResults Searcher::search(const SearchOptions& options){
-    bestScore = -INF;
 
+
+SearchResults Searcher::search(const SearchOptions& options){
+
+    bestScore = -INF;
     bestMove = Move();
     bestScore = -INF;
     statistics_ = Statistics();
-
     SearchResults lastCompleted{bestScore, bestMove};
+    killerMoves.fill(std::array{Move(), Move()});
+
 
     bool foundValidMove = false;
 
     // iterative deepening
     for (int depth = 1; depth <= options.depthLimit; ++depth) {
+
         // clear the pv
         pvLength[0] = 0;
         for (int& i: pvLength)
@@ -134,7 +138,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     const bool isInCheck = Referee::IsInCheck(board, board.whiteToMove());
 
     auto moves = MoveList(board, false);
-    moves.sort(board, ttMove);
+    moves.sort(board, ttMove, killerMoves[depthFromRoot][0], killerMoves[depthFromRoot][1]);
 
     int legalMoveCount = 0;
     Bounds storingBound = UPPER_BOUND;
@@ -160,6 +164,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
             controller_->transpositionTable().Store(board.getHash(), move, EncodeMateScore(eval, depthFromRoot),
                                                     LOWER_BOUND, depthRemaining,
                                                     controller_->getAge());
+            storeKillerMove(depthFromRoot, move);
             return SearchFlag{beta, true};
         }
 
@@ -225,7 +230,7 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
     }
 
     auto moves = MoveList(board, !isInCheck);
-    moves.sort(board, ttMove);
+    moves.sort(board, ttMove, killerMoves[depthFromRoot][0], killerMoves[depthFromRoot][1]);
 
     bool hasLegalMove = false;
     Move bestMoveInNode;
@@ -249,6 +254,7 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
             statistics_.betaCutoffs++;
             controller_->transpositionTable().Store(board.getHash(), move, EncodeMateScore(beta, depthFromRoot),
                                                     LOWER_BOUND, 0, controller_->getAge());
+            storeKillerMove(depthFromRoot, move);
             return SearchFlag{beta, true};
         }
 
@@ -267,4 +273,15 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
     controller_->transpositionTable().Store(board.getHash(), bestMoveInNode, EncodeMateScore(finalScore, depthFromRoot),
                                             storingBound, 0, controller_->getAge());
     return SearchFlag{finalScore, true};
+}
+
+void Searcher::storeKillerMove(const int depth, const Move move){
+    auto existingEntry = killerMoves[depth][0];
+    if (existingEntry.isNullMove()) {
+        killerMoves[depth][0] = move;
+    }
+    else {
+        killerMoves[depth][1] = existingEntry;
+        killerMoves[depth][0] = move;
+    }
 }
