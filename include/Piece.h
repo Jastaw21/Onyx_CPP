@@ -1,10 +1,11 @@
 #ifndef ONYXCPP_PIECE_H
 #define ONYXCPP_PIECE_H
 
+#include <array>
 #include <cstdint>
 
 enum PieceType : uint8_t {
-    Pawn, Knight, Bishop, Rook, Queen, King, NoType
+    Pawn=0, Knight=1, Bishop=2, Rook=3, Queen=4, King=5, NoType=6
 };
 
 enum Colour : uint8_t {
@@ -36,6 +37,8 @@ public:
 
 };
 
+// Pawn, Knight, Bishop, Rook, Queen, King
+static inline  std::array<int,6> pieceValues = {100,300,320,500,900,0};
 
 
 #endif //ONYXCPP_PIECE_H

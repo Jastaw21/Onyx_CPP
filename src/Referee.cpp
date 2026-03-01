@@ -5,45 +5,6 @@
 #include "../include/Referee.h"
 
 #include "../include/MagicBitboards.h"
-bool Referee::wouldReleasePin(const Square pinnedFrom, const Square pinnedTo, const Square kingSquare, const bool isWhite, Board& board){
-
-    const auto ray = rayBetween(kingSquare,pinnedFrom);
-    if (ray == 0) return false; // not on a ray, can't be pinned
-
-    const Bitboard occupancyWithoutPotentialPinned = board.getOccupancy() & ~(1ULL << pinnedFrom);
-
-    const auto theirBishop = Piece(Bishop, isWhite ? Black : White );
-    const auto theirQueen = Piece(Queen, isWhite ? Black : White );
-
-    const Bitboard theirQueenPosition = board.getBoardByPiece(theirQueen);
-    const Bitboard diagonalAttackers = board.getBoardByPiece(theirBishop) | theirQueenPosition;
-    const Bitboard diagonalAttacks = MagicBitboards::getMoves(Piece(Bishop,White),kingSquare,occupancyWithoutPotentialPinned);
-    const Bitboard diagonalThreats = diagonalAttackers & diagonalAttacks;
-
-    // there is a queen or bishop on a square that can attack the king
-    if (diagonalThreats) {
-        const auto asSquare = static_cast<Square>(std::countr_zero(diagonalThreats));
-
-        // if we're moving on that ray then it's fine, if not illegal
-        const auto ray = rayBetween(asSquare,kingSquare);
-        return (ray & 1ULL << pinnedTo) == 0;
-    }
-
-    const auto relevantRook = Piece(Rook, isWhite ? Black : White );
-    const Bitboard straightAttackers = board.getBoardByPiece(relevantRook) | theirQueenPosition;
-    const Bitboard straightAttacks = MagicBitboards::getMoves(Piece(Rook,White),kingSquare,occupancyWithoutPotentialPinned);
-    const Bitboard straightThreats = straightAttackers & straightAttacks;
-
-    if (straightThreats) {
-        const auto asSquare = static_cast<Square>(std::countr_zero(straightThreats));
-
-        // if we're moving on that ray then it's fine, if not illegal
-        const auto ray = rayBetween(asSquare,kingSquare);
-        return (ray & 1ULL << pinnedTo) == 0;
-    }
-return false;
-
-}
 
 bool Referee::MoveIsLegal(Board& board, const Move move){
     const auto pieceMoved = board.pieceAtSquare(move.from());
@@ -55,7 +16,6 @@ bool Referee::MoveIsLegal(Board& board, const Move move){
 
     const bool isWhite = pieceMoved.isWhite();
     if (const bool inCheck = IsInCheck(board, isWhite); !inCheck) {
-
         const auto relevantKing = isWhite ? Piece(King, White) : Piece(King, Black);
         const Bitboard kingBoard = board.getBoardByPiece(relevantKing);
         const auto kingSquare = static_cast<Square>(std::countr_zero(kingBoard));
@@ -65,18 +25,15 @@ bool Referee::MoveIsLegal(Board& board, const Move move){
     return fullLegalityCheck(board, move);
 }
 
-
-bool Referee::IsInCheck(Board& board, const bool forWhite){
-
-    const Piece relevantKing = forWhite ? Piece(King, White) : Piece(King,Black);
-    const Bitboard kingBoard= board.getBoardByPiece(relevantKing);
+bool Referee::IsInCheck(const Board& board, const bool forWhite){
+    const Piece relevantKing = forWhite ? Piece(King, White) : Piece(King, Black);
+    const Bitboard kingBoard = board.getBoardByPiece(relevantKing);
     const auto kingSquare = static_cast<Square>(std::countr_zero(kingBoard));
 
-    return SquareAttacked(kingSquare,board, !forWhite);
-
+    return SquareAttacked(kingSquare, board, !forWhite);
 }
-bool Referee::SquareAttacked(const Square square, const Board& board, const bool byWhite){
 
+bool Referee::SquareAttacked(const Square square, const Board& board, const bool byWhite){
     const auto [rank, file] = squareToRankAndFile(square);
 
     // see if pawns attack this square
@@ -112,7 +69,8 @@ bool Referee::SquareAttacked(const Square square, const Board& board, const bool
         return true;
 
     const Bitboard queens = board.getBoardByPiece(byWhite ? Piece(Queen, White) : Piece(Queen, Black));
-    const Bitboard diagonalThreats = queens | board.getBoardByPiece(byWhite ? Piece(Bishop, White) : Piece(Bishop, Black));
+    const Bitboard diagonalThreats = queens | board.getBoardByPiece(
+                                         byWhite ? Piece(Bishop, White) : Piece(Bishop, Black));
 
     // try diagonal threats
     if (diagonalThreats) {
@@ -122,7 +80,7 @@ bool Referee::SquareAttacked(const Square square, const Board& board, const bool
             return true;
     }
 
-    const Bitboard straightThreats = queens |board.getBoardByPiece(byWhite ? Piece(Rook, White) : Piece(Rook, Black));
+    const Bitboard straightThreats = queens | board.getBoardByPiece(byWhite ? Piece(Rook, White) : Piece(Rook, Black));
     if (straightThreats) {
         const auto straightAttacks = MagicBitboards::getMoves(Piece(Rook, White), square, occupancy);
         if (straightAttacks & straightThreats)
@@ -135,7 +93,7 @@ bool Referee::isRepetition(Board& board){
     if (board.History().size() < 2) return false;
     const auto currentHash = board.getHash();
     const auto historyEntries = board.History().size();
-    const auto firstToSearch = historyEntries -1;
+    const auto firstToSearch = historyEntries - 1;
     const auto hmCutoff = board.History().size() - board.halfMoves();
 
     for (auto i = firstToSearch; i > hmCutoff; i--) {
@@ -145,10 +103,57 @@ bool Referee::isRepetition(Board& board){
     return false;
 }
 
+bool Referee::isCapture(const Board& board, const Move move){
+    if (move.flags() & MoveFlags::EnPassant)
+        return true;
+    return board.pieceAtSquare(move.to()).exists();
+}
+
 bool Referee::fullLegalityCheck(Board& board, const Move move){
     board.makeMove(move);
     const bool result = IsInCheck(board, !board.whiteToMove());
     board.unmakeMove(move);
 
     return !result;
+}
+
+bool Referee::wouldReleasePin(const Square pinnedFrom, const Square pinnedTo, const Square kingSquare,
+                              const bool isWhite, const Board& board){
+    const auto ray = rayBetween(kingSquare, pinnedFrom);
+    if (ray == 0) return false; // not on a ray, can't be pinned
+
+    const Bitboard occupancyWithoutPotentialPinned = board.getOccupancy() & ~(1ULL << pinnedFrom);
+
+    const auto theirBishop = Piece(Bishop, isWhite ? Black : White);
+    const auto theirQueen = Piece(Queen, isWhite ? Black : White);
+
+    const Bitboard theirQueenPosition = board.getBoardByPiece(theirQueen);
+    const Bitboard diagonalAttackers = board.getBoardByPiece(theirBishop) | theirQueenPosition;
+    const Bitboard diagonalAttacks = MagicBitboards::getMoves(Piece(Bishop, White), kingSquare,
+                                                              occupancyWithoutPotentialPinned);
+    const Bitboard diagonalThreats = diagonalAttackers & diagonalAttacks;
+
+    // there is a queen or bishop on a square that can attack the king
+    if (diagonalThreats) {
+        const auto asSquare = static_cast<Square>(std::countr_zero(diagonalThreats));
+
+        // if we're moving on that ray then it's fine, if not illegal
+        const auto ray = rayBetween(asSquare, kingSquare);
+        return (ray & 1ULL << pinnedTo) == 0;
+    }
+
+    const auto relevantRook = Piece(Rook, isWhite ? Black : White);
+    const Bitboard straightAttackers = board.getBoardByPiece(relevantRook) | theirQueenPosition;
+    const Bitboard straightAttacks = MagicBitboards::getMoves(Piece(Rook, White), kingSquare,
+                                                              occupancyWithoutPotentialPinned);
+    const Bitboard straightThreats = straightAttackers & straightAttacks;
+
+    if (straightThreats) {
+        const auto asSquare = static_cast<Square>(std::countr_zero(straightThreats));
+
+        // if we're moving on that ray then it's fine, if not illegal
+        const auto ray = rayBetween(asSquare, kingSquare);
+        return (ray & 1ULL << pinnedTo) == 0;
+    }
+    return false;
 }

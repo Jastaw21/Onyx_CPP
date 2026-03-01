@@ -10,24 +10,39 @@
 #include "Move.h"
 
 
+class Board;
+
 class MoveList {
-std::array<Move, 256> moves_;
+    std::array<Move, 256> moves_;
     size_t count_ = 0;
 
 public:
-    void add(Move move) {moves_[count_] = move; count_++;}
-    size_t size() const{return count_;}
-    Move& operator[](size_t i) { return moves_[i]; }
-    const Move& operator[](size_t i) const { return moves_[i]; }
-    bool contains(Move& move) {return std::ranges::contains(moves_,move);}
 
-    Move* begin() { return moves_.data(); }
-    Move* end() { return moves_.data() + count_; }
-    const Move* begin() const { return moves_.data(); }
-    const Move* end() const { return moves_.data() + count_; }
+    MoveList() = default;
+    explicit MoveList(const Board& board, bool capturesOnly = false);
 
-    void clear() { count_ = 0; }
+    void add(const Move move){
+        moves_[count_] = move;
+        count_++;
+    }
 
+    void sort(Board& board, const Move& ttMove);
+
+    size_t size() const{ return count_; }
+    Move& operator[](const size_t i){ return moves_[i]; }
+    const Move& operator[](const size_t i) const{ return moves_[i]; }
+    bool contains(const Move& move){ return std::ranges::contains(moves_, move); }
+
+    Move* begin(){ return moves_.data(); }
+    Move* end(){ return moves_.data() + count_; }
+    const Move* begin() const{ return moves_.data(); }
+    const Move* end() const{ return moves_.data() + count_; }
+
+    void clear(){ count_ = 0; }
+
+private:
+
+    static int moveScore(const Move& move, const Board& board);
 };
 
 
