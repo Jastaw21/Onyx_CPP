@@ -80,6 +80,17 @@ SearchResults Searcher::search(const SearchOptions& options){
     return lastCompleted;
 }
 
+int Searcher::DecodeMateScore(const int score, const int depthFromRoot){
+    if (score > MATE - 500) return score - depthFromRoot;
+    if (score < -(MATE - 500)) return score + depthFromRoot;
+    return score;
+}
+
+int Searcher::EncodeMateScore(const int score, const int depthFromRoot){
+    if (score > MATE - 500) return score + depthFromRoot;
+    if (score < -(MATE - 500)) return score - depthFromRoot;
+    return score;
+}
 
 SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot, int alpha, const int beta){
     if (statistics_.nodes % 2047 == 0 && token_.isStopped())
@@ -256,16 +267,4 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
     controller_->transpositionTable().Store(board.getHash(), bestMoveInNode, EncodeMateScore(finalScore, depthFromRoot),
                                             storingBound, 0, controller_->getAge());
     return SearchFlag{finalScore, true};
-}
-
-int Searcher::DecodeMateScore(const int score, const int depthFromRoot){
-    if (score > MATE - 500) return score - depthFromRoot;
-    if (score < -(MATE - 500)) return score + depthFromRoot;
-    return score;
-}
-
-int Searcher::EncodeMateScore(const int score, const int depthFromRoot){
-    if (score > MATE - 500) return score + depthFromRoot;
-    if (score < -(MATE - 500)) return score - depthFromRoot;
-    return score;
 }
