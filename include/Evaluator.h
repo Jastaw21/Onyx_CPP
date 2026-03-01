@@ -13,8 +13,8 @@ struct MaterialEval {
 };
 
 class Evaluator {
-
 public:
+
     static int Evaluate(Board& board);
     static MaterialEval EvaluateMaterial(Board& board, bool forWhite, float endGameRatio);
 
@@ -28,9 +28,8 @@ private:
     static Psq knightTables;
 
     static int getScoreOnSquare(PieceType type, Square onSquare, bool isWhite, bool endGame);
-    static  std::array<Piece,6> whitePieces ;
-    static std::array<Piece,6>  blackPieces ;
-    static  std::array<int,6> pieceValues;
+    static std::array<Piece, 6> whitePieces;
+    static std::array<Piece, 6> blackPieces;
 };
 
 

@@ -6,8 +6,8 @@
 
 
 
-// Pawn, Knight, Bishop, Rook, Queen, King, NoType
-std::array<int,6> Evaluator::pieceValues = {100,300,320,500,900,0};
+
+
 
 std::array<Piece,6> Evaluator::whitePieces = {
     Piece(Pawn,White),  Piece(Knight,White),Piece(King,White),Piece(Queen,White),Piece(Rook,White),Piece(Bishop,White)

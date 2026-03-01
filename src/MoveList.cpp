@@ -12,31 +12,22 @@ MoveList::MoveList(const Board& board, const bool capturesOnly){
 
 void MoveList::sort(const Board& board, const Move& ttMove){
     if (ttMove.isNullMove()) return;
-    std::ranges::sort(moves_, [&](const Move& a, const Move& b) {
-        if ( a == ttMove) {
-            return true;
-        }
-        if (b == ttMove) {
-            return false;
-        }
-
+    std::ranges::sort(*this, [&](const Move& a, const Move& b) {
+        if (a == ttMove) { return true; }
+        if (b == ttMove) { return false; }
         return moveScore(a, board) > moveScore(b, board);
-
     });
 }
 
-int MoveList::moveScore(const Move& move, const Board& board) const{
+int MoveList::moveScore(const Move& move, const Board& board){
     if (move.isPromotion()) return 10000;
 
-    auto capturedPiece = board.pieceAtSquare(move.to());
-    if (capturedPiece.exists()) {
-        return 8000;
+    if (const auto capturedPiece = board.pieceAtSquare(move.to()); capturedPiece.exists()) {
+        // MVV-LVA but still reward captures
+        const auto pieceMoved = board.pieceAtSquare(move.from());
+        const auto score = 7 * pieceValues[capturedPiece.type()] - pieceValues[pieceMoved.type()];
+        return score;
     }
 
-    if (move.flags() & Castling)
-        return 6000;
-
-    if (move.flags() & EnPassant)
-        return 5000;
     return 0;
 }

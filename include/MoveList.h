@@ -41,7 +41,8 @@ public:
     void clear(){ count_ = 0; }
 
 private:
-    int moveScore(const Move& move, const Board& board) const;
+
+    static int moveScore(const Move& move, const Board& board);
 };
 
 
