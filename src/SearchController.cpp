@@ -27,7 +27,7 @@ void SearchController::start(SearchOptions& options){
     age++;
 }
 
-void SearchController::onDepthComplete(const SearchInfo& info){
+void SearchController::onDepthComplete(const SearchInfo& info) const{
     const auto elapsed = std::max(1ull, timer_.elapsedMs());
 
     std::cout
@@ -36,7 +36,7 @@ void SearchController::onDepthComplete(const SearchInfo& info){
             << " pv " << info.pv << std::endl;
 }
 
-uint64_t SearchController::getTimePerMove(SearchOptions& options){
+uint64_t SearchController::getTimePerMove(const SearchOptions& options) const{
     bool hasTimeLimit = false;
     const auto ourTime = board_.whiteToMove() ? options.tc.wtime : options.tc.btime;
     const auto ourInc = board_.whiteToMove() ? options.tc.winc : options.tc.binc;

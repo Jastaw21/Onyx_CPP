@@ -54,7 +54,7 @@ struct TTStats {
     uint64_t lowerBound = 0;
     uint64_t upperBound = 0;
 
-    void PrintStats();
+    void PrintStats() const;
 
 };
 

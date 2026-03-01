@@ -68,8 +68,8 @@ private:
     }
 
 
-    void onDepthComplete(const SearchInfo& info);
-    uint64_t getTimePerMove(SearchOptions& options);
+    void onDepthComplete(const SearchInfo& info) const;
+    uint64_t getTimePerMove(const SearchOptions& options) const;
 };
 
 

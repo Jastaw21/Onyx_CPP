@@ -51,7 +51,6 @@ bool Referee::SquareAttacked(const Square square, const Board& board, const bool
         if (targetSquare >= 0 && targetSquare <= 63)
             if (1ULL << targetSquare & pawnPositions) return true;
     }
-    const Bitboard thisSquare = 1ULL << square;
 
     // try knights
     const Bitboard knightPlacements = board.getBoardByPiece(byWhite ? Piece(Knight, White) : Piece(Knight, Black));
@@ -131,29 +130,27 @@ bool Referee::wouldReleasePin(const Square pinnedFrom, const Square pinnedTo, co
     const Bitboard diagonalAttackers = board.getBoardByPiece(theirBishop) | theirQueenPosition;
     const Bitboard diagonalAttacks = MagicBitboards::getMoves(Piece(Bishop, White), kingSquare,
                                                               occupancyWithoutPotentialPinned);
-    const Bitboard diagonalThreats = diagonalAttackers & diagonalAttacks;
 
     // there is a queen or bishop on a square that can attack the king
-    if (diagonalThreats) {
+    if (const Bitboard diagonalThreats = diagonalAttackers & diagonalAttacks) {
         const auto asSquare = static_cast<Square>(std::countr_zero(diagonalThreats));
 
         // if we're moving on that ray then it's fine, if not illegal
-        const auto ray = rayBetween(asSquare, kingSquare);
-        return (ray & 1ULL << pinnedTo) == 0;
+        const auto diagRay = rayBetween(asSquare, kingSquare);
+        return (diagRay & 1ULL << pinnedTo) == 0;
     }
 
     const auto relevantRook = Piece(Rook, isWhite ? Black : White);
     const Bitboard straightAttackers = board.getBoardByPiece(relevantRook) | theirQueenPosition;
     const Bitboard straightAttacks = MagicBitboards::getMoves(Piece(Rook, White), kingSquare,
                                                               occupancyWithoutPotentialPinned);
-    const Bitboard straightThreats = straightAttackers & straightAttacks;
 
-    if (straightThreats) {
+    if (const Bitboard straightThreats = straightAttackers & straightAttacks) {
         const auto asSquare = static_cast<Square>(std::countr_zero(straightThreats));
 
         // if we're moving on that ray then it's fine, if not illegal
-        const auto ray = rayBetween(asSquare, kingSquare);
-        return (ray & 1ULL << pinnedTo) == 0;
+        const auto diagRay = rayBetween(asSquare, kingSquare);
+        return (diagRay & 1ULL << pinnedTo) == 0;
     }
     return false;
 }

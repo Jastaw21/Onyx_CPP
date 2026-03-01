@@ -21,7 +21,7 @@ bool TTEntry::trust(const int depth_, const int alpha, const int beta, const Zob
     return false;
 }
 
-void TTStats::PrintStats(){
+void TTStats::PrintStats() const{
     std::string result;
 
     result += "TTStats\n";
@@ -105,7 +105,7 @@ void TranspositionTable::Store(const ZobristHash key, const Move move, const int
         return;
     }
 
-    // always replace on greater depth
+    // always replace it on greater depth
     if (existingEntry.depth < depth) {
         table[index] = newEntry;
         stats.depthReplaced++;

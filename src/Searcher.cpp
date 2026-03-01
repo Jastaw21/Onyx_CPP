@@ -29,13 +29,13 @@ SearchResults Searcher::search(const SearchOptions& options){
         for (int& i: pvLength)
             i = 0;
 
-        const auto result = DoSearch(depth, 0, -INF, INF);
+        const auto [score, completed] = DoSearch(depth, 0, -INF, INF);
 
-        if (!result.completed)
+        if (!completed)
             break; // stop requested
 
         foundValidMove = true;
-        bestScore = result.score;
+        bestScore = score;
         lastCompleted = {bestScore, bestMove};
         statistics_.depth = depth;
 
@@ -112,7 +112,6 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         return qEval;
     }
 
-
     auto moves = MoveList(board, false);
     moves.sort(board, ttMove, killerMoves[depthFromRoot][0], killerMoves[depthFromRoot][1]);
 
@@ -136,7 +135,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         // check if capture before move, and if in check after
         auto capturedPiece = board.pieceAtSquare(move.to());
         board.makeMove(move);
-        auto isInCheckAfterMove = Referee::IsInCheck(board, board.whiteToMove());
+        const auto isInCheckAfterMove = Referee::IsInCheck(board, board.whiteToMove());
 
         bool needsFullSearch = true;
         SearchFlag searchResults;
@@ -151,8 +150,8 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
 
             if (reduction > 0) {
                 statistics_.reducedSearches++;
-                searchResults = DoSearch(depthRemaining - 1 - reduction, depthFromRoot+1, -alpha -1 ,-alpha);
-                auto reducedEval = -searchResults.score;
+                searchResults = DoSearch(depthRemaining - 1 - reduction, depthFromRoot + 1, -alpha - 1, -alpha);
+                const auto reducedEval = -searchResults.score;
                 needsFullSearch = reducedEval > alpha;
                 if (needsFullSearch) statistics_.fullResearches++;
             }
@@ -282,13 +281,13 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
             continue;
         hasLegalMove = true;
         board.makeMove(move);
-        const auto child = Quiescence(-beta, -alpha, depthFromRoot + 1);
+        const auto [score, completed] = Quiescence(-beta, -alpha, depthFromRoot + 1);
         board.unmakeMove(move);
-        if (!child.completed)
+        if (!completed)
             return SearchFlag::Abort();
-        const auto score = -child.score;
+        const auto eval = -score;
 
-        if (score >= beta) {
+        if (eval >= beta) {
             statistics_.betaCutoffs++;
             controller_->transpositionTable().Store(board.getHash(), move, EncodeMateScore(beta, depthFromRoot),
                                                     LOWER_BOUND, 0, controller_->getAge());
@@ -296,8 +295,8 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
             return SearchFlag{beta, true};
         }
 
-        if (score > alpha) {
-            alpha = score;
+        if (eval > alpha) {
+            alpha = eval;
             bestMoveInNode = move;
             storingBound = EXACT;
         }
@@ -314,6 +313,7 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
 }
 
 void Searcher::storeKillerMove(const int depth, const Move move){
+    // ReSharper disable once CppTooWideScopeInitStatement
     const auto existingEntry = killerMoves[depth][0];
     if (existingEntry.isNullMove()) { killerMoves[depth][0] = move; } else {
         killerMoves[depth][1] = existingEntry;

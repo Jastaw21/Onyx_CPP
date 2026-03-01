@@ -67,13 +67,13 @@ void Zobrist::applyMove(uint64_t& currentHash, const Move& move, const Piece pie
     }
 
     else if (move.flags() & Castling) {
-        const auto toRaf = squareToRankAndFile(move.to());
+        const auto [rank, file] = squareToRankAndFile(move.to());
         const auto rookMoved = pieceMoved.colour() == White ? Piece(Rook, White) : Piece(Rook, Black);
-        const auto rookOriginFile = toRaf.file == 2 ? 0 : 7; // get the correct sided rook
-        const auto rookOriginSquare = rankAndFileToSquare(toRaf.rank, rookOriginFile);
+        const auto rookOriginFile = file == 2 ? 0 : 7; // get the correct sided rook
+        const auto rookOriginSquare = rankAndFileToSquare(rank, rookOriginFile);
 
-        const auto rookTargetFile = toRaf.file == 2 ? 3 : 5; // get the correct sided rook
-        const auto rookTargetSquare = rankAndFileToSquare(toRaf.rank, rookTargetFile);
+        const auto rookTargetFile = file == 2 ? 3 : 5; // get the correct sided rook
+        const auto rookTargetSquare = rankAndFileToSquare(rank, rookTargetFile);
 
         currentHash ^= pieceHashes[rookMoved.index()][rookOriginSquare];
         currentHash ^= pieceHashes[rookMoved.index()][rookTargetSquare];

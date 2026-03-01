@@ -9,6 +9,47 @@
 Tokeniser::Tokeniser(const std::string& input){ tokenise(input); }
 
 
+bool Tokeniser::isMove(const std::string& token){
+    if (token.size() < 4)
+        return false;
+    bool isMove = false;
+
+    // the bestmove is invalid, i.e. the engine can't find a move.
+    if (token == "0000"){
+        return true;
+    }
+
+    if (token.size() == 4 || token.size() == 5) { isMove = true; }
+
+    // the fifth token must be a promotion move, check it's valid
+    if (token.size() == 5) { const char fifth = token[4];
+        if (fifth != 'Q' && fifth != 'q' && fifth != 'N' && fifth != 'n' && fifth != 'B' && fifth != 'b'
+            && fifth != 'R' && fifth != 'r'
+        ) { return false; }
+    }
+    // should be alpha, digit, alpha, digit
+    if (!std::isalpha(token[0]) || !std::isalpha(token[2]) || !std::isdigit(token[1]) || !std::isdigit(token[3]))
+        isMove = false;
+
+    return isMove;
+}
+
+bool Tokeniser::isPosition(const std::string& token){
+    // really weak check if it's a position
+    int slashCount = 0;
+    for (const auto& c: token) { if (c == '/') { slashCount++; } }
+    return slashCount == 7;
+}
+
+bool Tokeniser::isIntLiteral(const std::string& token){
+    return std::ranges::all_of(token, [](const char c) { return std::isdigit(static_cast<unsigned char>(c)); });
+}
+
+bool Tokeniser::isStringLiteral(const std::string& token){
+    return std::ranges::all_of(token, [](const char c) { return std::isalpha(static_cast<unsigned char>(c)); });
+}
+
+
 void Tokeniser::tokenise(const std::string& input){
     std::string token;
 
@@ -27,6 +68,7 @@ void Tokeniser::tokenise(const std::string& input){
 
     tokens.push_back(Token{TokenType::EOF_TOKEN, ""}); // end with EOF
 }
+
 
 void Tokeniser::handleToken(std::string& builtToken){
     // search position
@@ -87,46 +129,4 @@ TokenType Tokeniser::getUnknownTokenType(const std::string& token){
         return TokenType::EOF_TOKEN;
 
     return TokenType::UNKNOWN;
-}
-
-bool Tokeniser::isMove(const std::string& token){
-    if (token.size() < 4)
-        return false;
-    bool isMove = false;
-
-    // bestmove is invalid, i.e the engine can't find a move.
-    if (token == "0000"){
-        return true;
-    }
-
-    if (token.size() == 4 || token.size() == 5) { isMove = true; }
-
-    // the fifth token must be a promotion move, check it's valid
-    if (token.size() == 5) { const char fifth = token[4];
-        if (fifth != 'Q' && fifth != 'q' && fifth != 'N' && fifth != 'n' && fifth != 'B' && fifth != 'b'
-            && fifth != 'R' && fifth != 'r'
-        ) { return false; }
-    }
-    // should be alpha, digit, alpha, digit
-    if (!std::isalpha(token[0]) || !std::isalpha(token[2]) || !std::isdigit(token[1]) || !std::isdigit(token[3]))
-        isMove = false;
-
-    return isMove;
-}
-
-
-bool Tokeniser::isPosition(const std::string& token){
-    // really weak check if it's a position
-    int slashCount = 0;
-    for (const auto& c: token) { if (c == '/') { slashCount++; } }
-    return slashCount == 7;
-}
-
-
-bool Tokeniser::isIntLiteral(const std::string& token){
-    return std::ranges::all_of(token, [](const char c) { return std::isdigit(static_cast<unsigned char>(c)); });
-}
-
-bool Tokeniser::isStringLiteral(const std::string& token){
-    return std::ranges::all_of(token, [](const char c) { return std::isalpha(static_cast<unsigned char>(c)); });
 }

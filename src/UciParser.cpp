@@ -9,33 +9,31 @@
 #include <string>
 
 
-std::optional<Command> UCIParser::parse(const std::string& inString){
+std::optional<Command> UCIParser::parse(const std::string& parseTarget){
     currentToken = 0;
-    auto tokeniser = Tokeniser(inString);
+    auto tokeniser = Tokeniser(parseTarget);
     tokens = tokeniser.getTokens();
 
     while (currentToken < tokens.size()) {
-        const Token liveToken = consume();
+        const auto [type, value] = consume();
 
-        if (liveToken.type == TokenType::UNKNOWN) { break; }
+        if (type == TokenType::UNKNOWN) { break; }
 
-        if (liveToken.type == TokenType::UCI) { return UCICommand{}; }
+        if (type == TokenType::UCI) { return UCICommand{}; }
 
-        if (liveToken.type == TokenType::STOP) { return StopCommand{}; }
+        if (type == TokenType::STOP) { return StopCommand{}; }
 
-        if (liveToken.type == TokenType::QUIT) { return QuitCommand{}; }
+        if (type == TokenType::QUIT) { return QuitCommand{}; }
 
-        if (liveToken.type == TokenType::ISREADY) { return IsReadyCommand{}; }
+        if (type == TokenType::ISREADY) { return IsReadyCommand{}; }
 
-        if (liveToken.type == TokenType::UCI_NEW_GAME) { return NewGameCommand{}; }
+        if (type == TokenType::UCI_NEW_GAME) { return NewGameCommand{}; }
 
-        if (liveToken.type == TokenType::GO) { return parseGo(); }
+        if (type == TokenType::GO) { return parseGo(); }
 
-        if (liveToken.type == TokenType::POSITION) { return parsePosition(); }
+        if (type == TokenType::POSITION) { return parsePosition(); }
 
-        if (liveToken.type == TokenType::DEBUG) {return PrintDebugCommand{};}
-
-
+        if (type == TokenType::DEBUG) { return PrintDebugCommand{}; }
     }
 
     return std::nullopt; // no valid command found
@@ -63,7 +61,6 @@ std::optional<Command> UCIParser::parsePosition(){
     }
     // if we don't get a startpos, means we need to try and parse the fen
 
-
     else if (peek().type == TokenType::FEN_TOKEN) {
         consume(); // clear the fen token
 
@@ -90,8 +87,7 @@ std::optional<Command> UCIParser::parseGo(){
     GoCommand result;
     result.depth = 128;
 
-    TimeControl tc{0,0,0,0,0};
-
+    TimeControl tc{0, 0, 0, 0, 0};
 
     // while our "anchor token is a time-related one"
     while (
@@ -102,7 +98,9 @@ std::optional<Command> UCIParser::parseGo(){
         || peek().type == TokenType::WINC
         || peek().type == TokenType::BINC
         || peek().type == TokenType::PERFT
-    ) { const auto anchorToken = consume();
+    ) {
+        // now handle it
+        const auto anchorToken = consume();
         switch (anchorToken.type) {
             case TokenType::DEPTH: {
                 if (peek().type == TokenType::INT_LITERAL) { result.depth = std::stoi(consume().value); }
@@ -133,9 +131,10 @@ std::optional<Command> UCIParser::parseGo(){
                 if (peek().type == TokenType::INT_LITERAL) { tc.binc = std::stoi(consume().value); }
                 break;
             }
+            default:
+                std::cout << "Unhandled go token\n";
         }
     }
     result.timeControl = tc;
     return result;
 }
-
