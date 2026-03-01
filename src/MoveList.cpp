@@ -23,13 +23,14 @@ void MoveList::sort(Board& board, const Move& ttMove){
 }
 
 int MoveList::moveScore(const Move& move, const Board& board){
+    int score = 0;
 
     if (const auto capturedPiece = board.pieceAtSquare(move.to()); capturedPiece.exists()) {
         // MVV-LVA but still reward captures
         const auto pieceMoved = board.pieceAtSquare(move.from());
-        const auto score =  pieceValues[capturedPiece.type()] - pieceValues[pieceMoved.type()];
-        return score;
+        score += 2*pieceValues[capturedPiece.type()] - pieceValues[pieceMoved.type()];
     }
 
-    return 0;
+
+    return score;
 }
