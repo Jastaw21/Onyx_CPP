@@ -88,8 +88,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     Move ttMove;
     const TTEntry* tt = controller_->transpositionTable().GetEntry(board.getHash());
     if (tt != nullptr) {
-        if (tt->move != Move() && Referee::MoveIsLegal(board, tt->move))
-            ttMove = tt->move;
+        ttMove = tt->move;
         if (tt->depth >= depthRemaining) {
             const auto adjMateScore = DecodeMateScore(tt->score, depthFromRoot);
             bool canUse = false;
