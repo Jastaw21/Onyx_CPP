@@ -31,15 +31,16 @@ struct Statistics {
     uint64_t betaCutoffs = 0;
     int hashCutoffs = 0;
 
-    int emptyTTMoves = 0;
-    int totalTTMoves = 0;
+    int reducedSearches = 0;
+    int fullResearches = 0;
+
 
     float ebf() const{ return depth > 0 ? std::pow(nodes, 1.0f / depth) : 0.0f; }
 
     void Log() const{
         std::cerr << "ENGINE\n Nodes: " << std::to_string(nodes) << " QNodes: " << std::to_string(qNodes) << " ebf : "
                 << std::to_string(ebf()) << " betaCutoffs: " << std::to_string(betaCutoffs) << " hash cut: " <<
-                std::to_string(hashCutoffs) << " empty TT " << std::to_string(emptyTTMoves) << " total tt " << std::to_string(totalTTMoves) <<  std::endl;
+                std::to_string(hashCutoffs) << " reduced: " << std::to_string(reducedSearches) << " full: " << std::to_string(fullResearches) <<  std::endl;
     }
 };
 
