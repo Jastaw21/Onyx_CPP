@@ -26,7 +26,7 @@ public:
         count_++;
     }
 
-    void sort(Board& board, const Move& ttMove);
+    void sort(Board& board, const Move& ttMove, const Move& killer1, const Move& killer2);
 
     size_t size() const{ return count_; }
     Move& operator[](const size_t i){ return moves_[i]; }
@@ -42,7 +42,7 @@ public:
 
 private:
 
-    static int moveScore(const Move& move, const Board& board);
+    static int moveScore(const Move& move, const Board& board, const Move& killer1, const Move& killer2);
 };
 
 

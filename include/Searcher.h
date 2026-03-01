@@ -69,9 +69,9 @@ private:
 
     SearchFlag DoSearch(int depthRemaining, int depthFromRoot, int alpha, int beta);
     SearchFlag Quiescence(int alpha, int beta, int depthFromRoot);
-    void printInfo(int depth, int bestScore, Move move, uint64_t elapsed) const;
+    void storeKillerMove(int depth, Move move);
 
-
+    std::array<std::array<Move, 2>, MAX_PLY> killerMoves{Move()};
     Move pvTable[MAX_PLY][MAX_PLY]{{Move()}};
     PVLength pvLength{};
 };
