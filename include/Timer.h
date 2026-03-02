@@ -14,7 +14,7 @@ public:
     void start() {
         startTime = clock::now();
     }
-    void start(uint64_t millisecondsLimit){
+    void start(const uint64_t millisecondsLimit){
         startTime = clock::now();
         endTime   = startTime + std::chrono::milliseconds(millisecondsLimit);
     }
@@ -28,7 +28,7 @@ public:
     double elapsedSeconds() const {
         return elapsedMs() / 1000.0;
     }
-    bool shouldStop(){
+    bool shouldStop() const{
         return clock::now() >= endTime;
     }
 

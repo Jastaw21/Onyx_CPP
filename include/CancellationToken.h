@@ -8,8 +8,7 @@
 
 struct CancellationToken {
 
-public:
-    bool isStopped() const {return stopped_.load(std::memory_order_relaxed);}
+bool isStopped() const {return stopped_.load(std::memory_order_relaxed);}
     void stop() {stopped_.store(true,std::memory_order_relaxed);}
     void reset() {stopped_.store(false, std::memory_order_relaxed);}
 

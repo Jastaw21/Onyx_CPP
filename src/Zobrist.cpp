@@ -96,7 +96,6 @@ void Zobrist::applyMove(uint64_t& currentHash, const Move& move, const Piece pie
 
 void Zobrist::init(){
     rng.seed(123123123); // stable seed for now
-    std::uniform_int_distribution<uint64_t> dist(0, UINT64_MAX);
     whiteToMove = rng.operator()();
 
     fillRandomArray<uint64_t, 64>(&enPassantSquare[0], rng);

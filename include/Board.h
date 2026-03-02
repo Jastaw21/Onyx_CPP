@@ -5,7 +5,6 @@
 #ifndef ONYXCPP_BOARD_H
 #define ONYXCPP_BOARD_H
 #include <array>
-#include <stack>
 #include <string>
 
 #include "Piece.h"

@@ -11,7 +11,7 @@ struct TimeControl {
     int winc;
     int binc;
     int movestogo;
-    bool isTimed(){
+    bool isTimed() const{
         return wtime >0 || btime >0;
     }
 };

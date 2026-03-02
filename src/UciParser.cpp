@@ -89,7 +89,7 @@ std::optional<Command> UCIParser::parseGo(){
 
     TimeControl tc{0, 0, 0, 0, 0};
 
-    // while our "anchor token is a time-related one"
+    // while our "anchor token is time-related"
     while (
         peek().type == TokenType::GO
         || peek().type == TokenType::DEPTH

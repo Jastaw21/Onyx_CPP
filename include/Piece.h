@@ -29,7 +29,7 @@ public:
     Colour colour() const{ return static_cast<Colour>(value >> 4); }
 
     bool exists() const{ return value != 0; }
-    bool isWhite() const{ return value >> 4 == Colour::White;}
+    bool isWhite() const{ return value >> 4 == White;}
 
     uint8_t Value() const{ return value; }
 
@@ -38,7 +38,7 @@ public:
 };
 
 // Pawn, Knight, Bishop, Rook, Queen, King
-static inline  std::array<int,6> pieceValues = {100,300,320,500,900,0};
+static inline  std::array pieceValues = {100,300,320,500,900,0};
 
 
 #endif //ONYXCPP_PIECE_H

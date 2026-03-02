@@ -6,7 +6,6 @@
 #define ONYXCPP_REFEREE_H
 #include "Board.h"
 #include "Move.h"
-#include "Searcher.h"
 
 class Referee {
 public:

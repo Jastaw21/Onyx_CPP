@@ -6,8 +6,8 @@
 #define ONYXCPP_MOVE_H
 #include <cstdint>
 
-#include "types.h"
 #include "Piece.h"
+#include "types.h"
 
 
 // clang-format off
@@ -38,21 +38,22 @@ public:
 
     bool isNullMove() const{ return data_ == 0; }
     uint8_t flags() const{ return data_ >> 12; }
-    void addFlag(uint8_t flag) {auto shiftedFlag = flag << 12; data_ |= shiftedFlag;}
+    void addFlag(const uint8_t flag) {
+const auto shiftedFlag = flag << 12; data_ |= shiftedFlag;}
     Square from() const{ return data_ & 0x3f; }
     Square to() const{ return data_ >> 6 & 0x3f; }
     bool isPromotion() const{ return flags() & (PromotionQueen | PromotionBishop | PromotionKnight | PromotionRook); }
     uint32_t Data() const {return data_;}
 
     PieceType promotionType() const{
-        auto flag = flags();
+        const auto flag = flags();
         if (flag & PromotionQueen)
             return Queen;
-        else if (flag & PromotionBishop)
+        if (flag & PromotionBishop)
             return Bishop;
-        else if (flag & PromotionKnight)
+        if (flag & PromotionKnight)
             return Knight;
-        else if (flag & PromotionRook)
+        if (flag & PromotionRook)
             return Rook;
         return NoType;
     }

@@ -4,8 +4,8 @@
 
 #ifndef ONYXCPP_FEN_H
 #define ONYXCPP_FEN_H
-#include <string>
 #include <sstream>
+#include <string>
 #include "types.h"
 #include "utils.h"
 

@@ -25,9 +25,8 @@ inline PieceType charToPieceType(const char c){
         case 'q': return Queen;
         case 'k': return King;
         case 'b': return Bishop;
+            default:return NoType;
     }
-
-    return PieceType::NoType;
 }
 
 inline char pieceTypeToChar(const PieceType type){
@@ -38,8 +37,9 @@ inline char pieceTypeToChar(const PieceType type){
         case Queen: return 'q';
         case King: return 'k';
         case Bishop: return 'b';
+        default: throw std::runtime_error("Tried to get character of unknown type");
     }
-    return 'X';
+
 }
 
 inline RankAndFile squareToRankAndFile(const Square square){
@@ -52,20 +52,20 @@ inline RankAndFile squareToRankAndFile(const Square square){
 inline Square rankAndFileToSquare(const int rank, const int file){ return rank * 8 + file; }
 
 inline Square notationToSquare(const std::string& notation){
-    auto file = notation[0];
-    auto rank = notation[1];
+    const auto file = notation[0];
+    const auto rank = notation[1];
 
-    auto fileIndex = file - 'a';
-    auto rankIndex = rank - '1';
+    const auto fileIndex = file - 'a';
+    const auto rankIndex = rank - '1';
     return rankAndFileToSquare(rankIndex, fileIndex);
 }
 
 inline std::string squareToNotation(const Square square){
-    auto rankAndFile = squareToRankAndFile(square);
+    const auto rankAndFile = squareToRankAndFile(square);
 
     std::string notation;
-    char fileChar = 'a' + rankAndFile.file;
-    auto rankChar = '1' + rankAndFile.rank;
+    const char fileChar = 'a' + rankAndFile.file;
+    const auto rankChar = '1' + rankAndFile.rank;
     notation += fileChar;
     notation += rankChar;
     return notation;
@@ -74,16 +74,16 @@ inline std::string squareToNotation(const Square square){
 inline Bitboard rayBetween(const Square a, const Square b){
 
     Bitboard ray = 0ULL;
-    RankAndFile rafA = squareToRankAndFile(a);
-    RankAndFile rafB = squareToRankAndFile(b);
+    const RankAndFile rafA = squareToRankAndFile(a);
+    const RankAndFile rafB = squareToRankAndFile(b);
 
-    bool isDiag = std::abs(rafA.rank - rafB.rank) == std::abs(rafA.file - rafB.file);
-    bool isStraight = rafA.file == rafB.file || rafA.rank == rafB.rank;
+    const bool isDiag = std::abs(rafA.rank - rafB.rank) == std::abs(rafA.file - rafB.file);
+    const bool isStraight = rafA.file == rafB.file || rafA.rank == rafB.rank;
 
     if (!isDiag && ! isStraight) return ray;
 
-    auto deltaRank = rafB.rank - rafA.rank;
-    auto deltaFile = rafB.file - rafA.file;
+    const auto deltaRank = rafB.rank - rafA.rank;
+    const auto deltaFile = rafB.file - rafA.file;
 
     int stepsInRay;
     if (isDiag) stepsInRay = deltaRank;
@@ -98,25 +98,23 @@ inline Bitboard rayBetween(const Square a, const Square b){
     else if (deltaFile == 0) fileSign =0;
     else fileSign = 1;
 
-    for (int step = 0; step <= std::abs(stepsInRay); step++) {
-        auto newRank = rafA.rank + step * rankSign;
-        auto newFile = rafA.file + step * fileSign;
-        auto newSquare = rankAndFileToSquare(newRank,newFile);
+    for (int step = 0; step <= std::abs(stepsInRay); step++) { const auto newRank = rafA.rank + step * rankSign;
+        const auto newFile = rafA.file + step * fileSign;
+        const auto newSquare = rankAndFileToSquare(newRank,newFile);
         ray |= 1ULL << newSquare;
     }
     return ray;
 }
 
 inline Move moveFromNotation(const std::string& notation){
-    auto from = notation.substr(0,2);
-    auto to = notation.substr(2,2);
-    auto fromSquare = notationToSquare(from);
-    auto toSquare = notationToSquare(to);
+    const auto from = notation.substr(0,2);
+    const auto to = notation.substr(2,2);
+    const auto fromSquare = notationToSquare(from);
+    const auto toSquare = notationToSquare(to);
     uint8_t flags = 0;
 
-    if (notation.size() == 5) {
-        char promotionChar = notation[4];
-        auto promotionType = charToPieceType(promotionChar);
+    if (notation.size() == 5) { const char promotionChar = notation[4];
+        const auto promotionType = charToPieceType(promotionChar);
         if (promotionType == Queen ) flags |= PromotionQueen;
         if (promotionType == Rook ) flags |= PromotionRook;
         if (promotionType == Bishop ) flags |= PromotionBishop;

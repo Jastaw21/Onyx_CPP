@@ -31,7 +31,7 @@ int MoveList::moveScore(const Move& move, const Board& board, const Move& killer
     if (const auto capturedPiece = board.pieceAtSquare(move.to()); capturedPiece.exists()) {
         // MVV-LVA but still reward captures
         const auto pieceMoved = board.pieceAtSquare(move.from());
-        score += 12000 + ((2 * pieceValues[capturedPiece.type()]) - pieceValues[pieceMoved.type()]);
+        score += 12000 + (2 * pieceValues[capturedPiece.type()] - pieceValues[pieceMoved.type()]);
     }
 
     if (!killer1.isNullMove() && move == killer1) score += 9000;

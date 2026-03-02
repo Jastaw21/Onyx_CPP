@@ -343,17 +343,17 @@ Bitboard MagicBitboards::initDiagonalMovesOccupancy(const Square square, const B
     Bitboard mask = 0ULL;
     Step directions[4] = {Step{1, 1}, Step{1, -1}, Step{-1, -1}, Step{-1, 1}};
 
-    for (const auto dir: directions) {
-        auto newRank = raf.rank + dir.deltaR;
-        auto newFile = raf.file + dir.deltaF;
+    for (const auto [deltaR, deltaF]: directions) {
+        auto newRank = raf.rank + deltaR;
+        auto newFile = raf.file + deltaF;
 
         while (newRank >= 0 && newRank <= 7 && newFile >= 0 && newFile <= 7) { const auto square = rankAndFileToSquare(newRank, newFile);
             const auto value = 1ULL << square;
             mask |= value;
             if (value & occupancy) break;
 
-            newRank += dir.deltaR;
-            newFile += dir.deltaF;
+            newRank += deltaR;
+            newFile += deltaF;
         }
     }
 

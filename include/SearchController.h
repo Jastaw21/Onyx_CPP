@@ -20,7 +20,7 @@ public:
     using InfoCallback = std::function<void(const SearchInfo&)>;
 
     explicit SearchController(Board& board);
-    void start(SearchOptions& options);
+    void start(const SearchOptions& options);
     void stop(){
         monitoring_ = false;
 

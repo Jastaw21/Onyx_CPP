@@ -10,7 +10,7 @@ SearchController::SearchController(Board& board) : board_(board), transpositionT
                                                        })){}
 
 
-void SearchController::start(SearchOptions& options){
+void SearchController::start(const SearchOptions& options){
     if (timerThread_.joinable())
         timerThread_.join();
 
@@ -32,7 +32,7 @@ void SearchController::onDepthComplete(const SearchInfo& info) const{
 
     std::cout
             << "info depth " << info.depth << " multipv 1 " << "score cp " << info.bestScore << " nodes "
-            << info.stats.nodes << " nps " << (int) (info.stats.nodes / elapsed * 1000.0) << " time " << elapsed
+            << info.stats.nodes << " nps " << static_cast<int>(info.stats.nodes / elapsed * 1000.0) << " time " << elapsed
             << " pv " << info.pv << std::endl;
 }
 

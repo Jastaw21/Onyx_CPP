@@ -116,7 +116,6 @@ void TranspositionTable::Store(const ZobristHash key, const Move move, const int
     if (existingEntry.age != age) {
         stats.ageReplaced++;
         table[index] = newEntry;
-        return;
     }
 }
 

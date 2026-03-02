@@ -20,9 +20,11 @@ public:
 
     SearchThread(Board& board, SearchController* controller,
                  std::function<void(const SearchInfo&)> callback = nullptr) : board_(board),
-                                                                              searcher_(board, token_, controller,std::move(callback)),
-                                                                              thread(&SearchThread::loop, this), controller_(controller)
-    {}
+                                                                              searcher_(board, token_, controller,
+                                                                                  std::move(callback)), options_(),
+                                                                              lastResults(),
+                                                                              thread(&SearchThread::loop, this),
+                                                                              controller_(controller){}
 
     ~SearchThread() {
         {
@@ -34,7 +36,7 @@ public:
             thread.join();
     }
 
-    void Start(SearchOptions& options){ {
+    void Start(const SearchOptions& options){ {
             std::lock_guard lock(mutex);
             options_ = options;
             token_.reset(); // get a new token

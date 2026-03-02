@@ -4,18 +4,18 @@
 
 #ifndef ONYXCPP_TYPES_H
 #define ONYXCPP_TYPES_H
+#include <cmath>
 #include <cstdint>
 #include <functional>
 #include <iostream>
 #include <string>
-#include <cmath>
 struct SearchInfo;
 using Square = int8_t;
 using Bitboard = uint64_t;
 using Fen = std::string;
 using ZobristHash = uint64_t;
 
-// score paid and piecesquaretable
+// score pair and piecesquaretable
 struct sp {
     int start;
     int end;

@@ -14,7 +14,6 @@ add_library(OnyxCoreLib
         include/MoveGenerator.h
         src/MagicBitboards.cpp
         include/MagicBitboards.h
-        src/Piece.cpp
         include/MoveList.h
         include/PerftRunner.h
         src/PerftRunner.cpp

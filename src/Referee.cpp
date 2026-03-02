@@ -79,8 +79,7 @@ bool Referee::SquareAttacked(const Square square, const Board& board, const bool
             return true;
     }
 
-    const Bitboard straightThreats = queens | board.getBoardByPiece(byWhite ? Piece(Rook, White) : Piece(Rook, Black));
-    if (straightThreats) {
+    if (const Bitboard straightThreats = queens | board.getBoardByPiece(byWhite ? Piece(Rook, White) : Piece(Rook, Black))) {
         const auto straightAttacks = MagicBitboards::getMoves(Piece(Rook, White), square, occupancy);
         if (straightAttacks & straightThreats)
             return true;

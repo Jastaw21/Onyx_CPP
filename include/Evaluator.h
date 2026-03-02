@@ -15,8 +15,8 @@ struct MaterialEval {
 class Evaluator {
 public:
 
-    static int Evaluate(Board& board);
-    static MaterialEval EvaluateMaterial(Board& board, bool forWhite, float endGameRatio);
+    static int Evaluate(const Board& board);
+    static MaterialEval EvaluateMaterial(const Board& board, bool forWhite, float endGameRatio);
 
 private:
 

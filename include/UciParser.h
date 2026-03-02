@@ -64,7 +64,6 @@ private:
 
     std::optional<Command> parsePosition();
     std::optional<Command> parseGo();
-    std::optional<Command> parseBestMove();
 
 };
 

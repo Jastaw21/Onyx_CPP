@@ -88,9 +88,9 @@ Psq Evaluator::knightTables = Psq{
 
 
 // clang-format on
-int Evaluator::Evaluate(Board& board){
-    const Bitboard whiteCount = std::popcount(board.getOccupancy(White));
-    const Bitboard blackCount = std::popcount(board.getOccupancy(Black));
+int Evaluator::Evaluate(const Board& board){
+    const Bitboard whiteCount = static_cast<int>(std::popcount(board.getOccupancy(White)));
+    const Bitboard blackCount =  static_cast<int>(std::popcount(board.getOccupancy(Black)));
 
     const auto whitePsqScore = EvaluateMaterial(board,true,0);
     const auto blackPsqScore = EvaluateMaterial(board,false,0);
@@ -104,7 +104,7 @@ int Evaluator::Evaluate(Board& board){
     return score * (board.whiteToMove() ? 1 : -1);
 }
 
-MaterialEval Evaluator::EvaluateMaterial(Board& board, const bool forWhite, const float endGameRatio){
+MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite, const float endGameRatio){
     const auto& pieces = forWhite ? whitePieces : blackPieces;
     MaterialEval eval{0,0};
 

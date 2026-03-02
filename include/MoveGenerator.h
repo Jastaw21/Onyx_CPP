@@ -23,7 +23,7 @@ public:
 private:
     static void generateBasicMoves(const Board& board, MoveList& moveSpan, Bitboard us, Bitboard them, Bitboard theirKing, bool capturesOnly = false);
     static void generatePawnMoves(const Board& board, MoveList& moveSpan, Bitboard us, Bitboard them, Bitboard theirKing, bool capturesOnly = false);
-    static void addCastlingmoves(const Board& board, MoveList& moveSpan, Bitboard us, Bitboard them);
+    static void addCastlingMoves(const Board& board, MoveList& moveSpan, Bitboard us, Bitboard them);
 
     static  std::array<Piece,6> whitePieces ;
     static std::array<Piece,6>  blackPieces ;

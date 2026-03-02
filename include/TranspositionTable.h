@@ -67,7 +67,7 @@ public:
     TTEntry Lookup(ZobristHash key) const;
     TTEval Lookup(ZobristHash key, int depthRemaining, int alpha, int beta);
     TTEntry* GetEntry(ZobristHash key);
-    void Log() {stats.PrintStats();}
+    void Log() const{stats.PrintStats();}
 
 private:
     std::vector<TTEntry> table;

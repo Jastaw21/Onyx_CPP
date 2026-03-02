@@ -28,7 +28,7 @@ void MoveGenerator::GenerateMoves(const Board& board, MoveList& moveSpan, const 
     generateBasicMoves(board, moveSpan, us, them, theirKing, capturesOnly);
     generatePawnMoves(board,moveSpan,us, them, theirKing, capturesOnly);
     if (board.castlingRights() == 0  || capturesOnly) return;
-    addCastlingmoves(board,moveSpan,us, them);
+    addCastlingMoves(board,moveSpan,us, them);
 }
 
 
@@ -115,7 +115,7 @@ void MoveGenerator::generatePawnMoves(const Board& board, MoveList& moveSpan, co
     }
 }
 
-void MoveGenerator::addCastlingmoves(const Board& board, MoveList& moveSpan, const Bitboard us, const Bitboard them){
+void MoveGenerator::addCastlingMoves(const Board& board, MoveList& moveSpan, const Bitboard us, const Bitboard them){
     const bool whiteToMove = board.whiteToMove();
     // no castling rights remaining
     const auto ourKingsideRights = whiteToMove ? FenHelpers::CastlingRights::WhiteKingside : FenHelpers::CastlingRights::BlackKingside;

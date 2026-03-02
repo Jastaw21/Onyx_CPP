@@ -10,7 +10,6 @@
 #include "CancellationToken.h"
 #include "Move.h"
 #include "TimeControl.h"
-#include "TranspositionTable.h"
 
 
 class SearchController;
@@ -47,7 +46,7 @@ class Searcher {
 public:
 
     Searcher(Board& board, CancellationToken& token, SearchController* controller,
-             InfoCallback callback = nullptr) : board(board), token_(token), callback_(callback),
+             const InfoCallback& callback = nullptr) : board(board), token_(token), callback_(callback),
                                                 controller_(controller){}
 
     SearchResults search(const SearchOptions& options);
@@ -70,8 +69,6 @@ private:
 
     SearchFlag DoSearch(int depthRemaining, int depthFromRoot, int alpha, int beta);
     bool ProbeTT(Move& outTTMove, int& outTTScore, int depthFromRoot, int depthRemaining, int alpha, int beta);
-    SearchFlag evaluateTranspositionTableEntry(int alpha, int beta, int depthFromRoot, const TTEntry* tt, Move& ttMove,
-                                               bool& returns);
     SearchFlag Quiescence(int alpha, int beta, int depthFromRoot);
     void storeKillerMove(int depth, Move move);
 
