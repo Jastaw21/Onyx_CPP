@@ -135,12 +135,15 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
 
         // we need to check these things before making the move
         auto capturedPiece = board.pieceAtSquare(move.to());
+        auto pieceMoved = board.pieceAtSquare(move.from());
+        auto [rank, file] = squareToRankAndFile(move.to());
+        const bool isPrePromotion = pieceMoved.type() == Pawn && (rank == 1 || rank == 6);
 
         board.makeMove(move);
         const auto isInCheckAfterMove = Referee::IsInCheck(board, board.whiteToMove());
 
         auto extension = 0;
-        if (isInCheckAfterMove || move.isPromotion()) {
+        if (isInCheckAfterMove || move.isPromotion() || isPrePromotion) {
             extension = 1;
         }
 
@@ -148,7 +151,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         SearchFlag searchResults;
 
         // try a slightly reduced search
-        if (!isInCheckAfterMove &&  depthRemaining >= 2 && !capturedPiece.exists()) {
+        if (!isInCheckAfterMove && extension == 0 && depthRemaining >= 2 && !capturedPiece.exists()) {
             int reduction = 0;
             if (allMoveCount >= 5)
                 reduction = 1;
