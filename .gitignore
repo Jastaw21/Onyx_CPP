@@ -2,3 +2,4 @@
 builds
 Testing
 /.output.txt
+/.run/CoreTests.run.xml
