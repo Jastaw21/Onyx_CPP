@@ -11,6 +11,7 @@
 #include "Referee.h"
 #include "SearchController.h"
 
+constexpr int maxExtensions = 0;
 
 SearchResults Searcher::search(const SearchOptions& options){
     bestScore = -INF;
@@ -132,13 +133,14 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         // reset the pv
         pvLength[depthFromRoot + 1] = 0;
 
-        // check if capture before move, and if in check after
+        // we need to check these things before making the move
         auto capturedPiece = board.pieceAtSquare(move.to());
+
         board.makeMove(move);
         const auto isInCheckAfterMove = Referee::IsInCheck(board, board.whiteToMove());
 
         auto extension = 0;
-        if (isInCheckAfterMove) {
+        if (isInCheckAfterMove || move.isPromotion()) {
             extension = 1;
         }
 
