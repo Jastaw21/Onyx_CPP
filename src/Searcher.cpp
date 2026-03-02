@@ -137,11 +137,16 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         board.makeMove(move);
         const auto isInCheckAfterMove = Referee::IsInCheck(board, board.whiteToMove());
 
+        auto extension = 0;
+        if (isInCheckAfterMove) {
+            extension = 1;
+        }
+
         bool needsFullSearch = true;
         SearchFlag searchResults;
 
         // try a slightly reduced search
-        if (!isInCheckAfterMove && depthRemaining >= 2 && !capturedPiece.exists()) {
+        if (!isInCheckAfterMove &&  depthRemaining >= 2 && !capturedPiece.exists()) {
             int reduction = 0;
             if (allMoveCount >= 5)
                 reduction = 1;
@@ -158,7 +163,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         }
 
         if (needsFullSearch)
-            searchResults = DoSearch(depthRemaining - 1, depthFromRoot + 1, -beta, -alpha);
+            searchResults = DoSearch(depthRemaining - 1 + extension, depthFromRoot + 1, -beta, -alpha);
         board.unmakeMove(move);
 
         if (!searchResults.completed) return SearchFlag::Abort();
