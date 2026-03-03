@@ -10,3 +10,4 @@ Testing
 /cmake-build-release
 /cmake-build-relwithdebinfo
 /cmake-build-vs
+/vcs vps.txt
