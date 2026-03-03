@@ -165,4 +165,17 @@ int Evaluator::getScoreOnSquare(const PieceType type, const Square onSquare, con
 
     return 0;
 }
+
+Psq& Evaluator::getTableByPieceType(const PieceType type){
+	switch (type) {
+		case Pawn       : return  pawnTables;
+		case Rook       : return  rookTables;
+		case Knight     : return  knightTables;
+		case Queen      : return  queenTables;
+		case King       : return  kingTables;
+		case Bishop     : return  bishopTables;
+	}
+}
+
+
 // clang-format on
