@@ -3,3 +3,10 @@ builds
 Testing
 /.output.txt
 /.run/CoreTests.run.xml
+/.vs
+/out
+/cmake-build-debug
+/cmake-build-minsizerel
+/cmake-build-release
+/cmake-build-relwithdebinfo
+/cmake-build-vs
