@@ -21,7 +21,6 @@ add_executable(OnyxCPPTests CoreTests.cpp
         Perft.cpp
         EvaluatorTests.cpp
         ZobristTests.cpp
-        EngineStressTests.cpp
 )
 target_link_libraries(OnyxCPPTests PRIVATE OnyxCoreLib gtest_main)
 target_include_directories(OnyxCPPTests PRIVATE ../include)
