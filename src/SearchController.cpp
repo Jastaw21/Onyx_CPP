@@ -4,10 +4,11 @@
 
 #include "../include/SearchController.h"
 
-SearchController::SearchController(Board& board) : board_(board), transpositionTable_(512), worker_(std::make_unique<SearchThread>(
-                                                       board, this, [this](const SearchInfo& info) {
-                                                           onDepthComplete(info);
-                                                       })){}
+SearchController::SearchController(Board& board) : board_(board), transpositionTable_(512), worker_(
+                                                       std::make_unique<SearchThread>(
+                                                           board, this, [this](const SearchInfo& info) {
+                                                               onDepthComplete(info);
+                                                           })){}
 
 
 void SearchController::start(const SearchOptions& options){
@@ -28,11 +29,13 @@ void SearchController::start(const SearchOptions& options){
 }
 
 void SearchController::onDepthComplete(const SearchInfo& info) const{
-    const auto elapsed = std::max(1ull, timer_.elapsedMs());
+    auto te = timer_.elapsedMs();
+    const auto elapsed = te < 1 ? 1 : te;
 
     std::cout
             << "info depth " << info.depth << " multipv 1 " << "score cp " << info.bestScore << " nodes "
-            << info.stats.nodes << " nps " << static_cast<int>(info.stats.nodes / elapsed * 1000.0) << " time " << elapsed
+            << info.stats.nodes << " nps " << static_cast<int>(info.stats.nodes / elapsed * 1000.0) << " time " <<
+            elapsed
             << " pv " << info.pv << std::endl;
 }
 
