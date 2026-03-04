@@ -39,11 +39,9 @@ struct Statistics {
 
     void Log() const{
         if (false)
-            std::cerr << "ENGINE\n Nodes: " << std::to_string(nodes) << " QNodes: " << std::to_string(qNodes) <<
-                    " ebf : "
-                    << std::to_string(ebf()) << " betaCutoffs: " << std::to_string(betaCutoffs) << " hash cut: " <<
-                    std::to_string(hashCutoffs) << " reduced: " << std::to_string(reducedSearches) << " full: " <<
-                    std::to_string(fullResearches) << std::endl;
+        std::cerr << "ENGINE\n Nodes: " << std::to_string(nodes) << " QNodes: " << std::to_string(qNodes) << " ebf : "
+                << std::to_string(ebf()) << " betaCutoffs: " << std::to_string(betaCutoffs) << " hash cut: " <<
+                std::to_string(hashCutoffs) << " reduced: " << std::to_string(reducedSearches) << " full: " << std::to_string(fullResearches) <<  std::endl;
     }
 };
 
