@@ -33,15 +33,16 @@ struct Statistics {
 
     int reducedSearches = 0;
     int fullResearches = 0;
+    int deltaCutoffs;
 
 
     float ebf() const{ return depth > 0 ? std::pow(nodes, 1.0f / depth) : 0.0f; }
 
     void Log() const{
-        if (false)
+        if (1)
         std::cerr << "ENGINE\n Nodes: " << std::to_string(nodes) << " QNodes: " << std::to_string(qNodes) << " ebf : "
                 << std::to_string(ebf()) << " betaCutoffs: " << std::to_string(betaCutoffs) << " hash cut: " <<
-                std::to_string(hashCutoffs) << " reduced: " << std::to_string(reducedSearches) << " full: " << std::to_string(fullResearches) <<  std::endl;
+                std::to_string(hashCutoffs) << " reduced: " << std::to_string(reducedSearches) << " full: " << std::to_string(fullResearches) << " Delta " << std::to_string(deltaCutoffs) <<  std::endl;
     }
 };
 
