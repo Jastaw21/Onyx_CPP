@@ -11,7 +11,7 @@
 #include "Referee.h"
 #include "SearchController.h"
 
-constexpr int maxExtensions = 10;
+constexpr int maxExtensions = 50;
 
 SearchResults Searcher::search(const SearchOptions& options){
     bestScore = -INF;
@@ -143,7 +143,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         const auto isInCheckAfterMove = Referee::IsInCheck(board, board.whiteToMove());
 
         auto extension = 0;
-        if (numExtensions <= maxExtensions && (isInCheckAfterMove || move.isPromotion() || isPrePromotion)) {
+        if (numExtensions <= maxExtensions && (isInCheckAfterMove || isPrePromotion)) {
             extension = 1;
             numExtensions ++;
         }
