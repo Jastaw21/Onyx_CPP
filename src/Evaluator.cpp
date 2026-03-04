@@ -2,7 +2,7 @@
 // Created by jacks on 08/02/2026.
 //
 
-#include "../include/Evaluator.h"
+#include "Evaluator.h"
 
 
 
@@ -104,25 +104,38 @@ int Evaluator::Evaluate(const Board& board){
     return score * (board.whiteToMove() ? 1 : -1);
 }
 
-MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite, const float endGameRatio){
-    const auto& pieces = forWhite ? whitePieces : blackPieces;
-    MaterialEval eval{0,0};
+MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite, const float endGameRatio) {
+	const auto& pieces = forWhite ? whitePieces : blackPieces;
+	MaterialEval eval{ 0,0 };
 
-    for (auto const& piece: pieces) {
-        auto placements = board.getBoardByPiece(piece);
-        const auto count = std::popcount(placements);
-        eval.materialScore += count * pieceValues[piece.type()];
-        while (placements) { const auto thisSquare = static_cast<Square>(std::countr_zero(placements));
-            const auto startScore = getScoreOnSquare(piece.type(),thisSquare,forWhite,true);
-            const auto endScore = getScoreOnSquare(piece.type(),thisSquare,forWhite,false);
+	for (auto const& piece : pieces) {
+		
+		auto placements = board.getBoardByPiece(piece);
+		const auto count = std::popcount(placements);
+		const auto pieceType = piece.type();
+		eval.materialScore += count * pieceValues[pieceType];
 
-            eval.pieceSquareScore += startScore * (1.0 - endGameRatio) + endScore * endGameRatio;
+		const auto& squareScores = getTableByPieceType(pieceType);
+		while (placements) {
+			
+			const auto thisSquare = static_cast<Square>(std::countr_zero(placements));
+			const auto index = forWhite ? thisSquare ^ 56 : thisSquare;
+			const auto startScore = squareScores[index].start;
 
-            placements &= placements -1;
-        }
-    }
+			if (endGameRatio > 0.001f) {
+				const auto endScore = squareScores[index].end;
 
-    return eval;
+				eval.pieceSquareScore += startScore * (1.0 - endGameRatio) + endScore * endGameRatio;
+			}
+			else {
+				eval.pieceSquareScore += startScore;
+			}
+
+			placements &= placements - 1;
+		}
+	}
+
+	return eval;
 }
 
 // clang-format off
@@ -152,4 +165,17 @@ int Evaluator::getScoreOnSquare(const PieceType type, const Square onSquare, con
 
     return 0;
 }
+
+Psq& Evaluator::getTableByPieceType(const PieceType type){
+	switch (type) {
+		case Pawn       : return  pawnTables;
+		case Rook       : return  rookTables;
+		case Knight     : return  knightTables;
+		case Queen      : return  queenTables;
+		case King       : return  kingTables;
+		case Bishop     : return  bishopTables;
+	}
+}
+
+
 // clang-format on

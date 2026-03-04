@@ -67,7 +67,7 @@ private:
     InfoCallback callback_;
     SearchController* controller_;
 
-    SearchFlag DoSearch(int depthRemaining, int depthFromRoot, int alpha, int beta);
+    SearchFlag DoSearch(int depthRemaining, int depthFromRoot, int alpha, int beta, int numExtensions);
     bool ProbeTT(Move& outTTMove, int& outTTScore, int depthFromRoot, int depthRemaining, int alpha, int beta);
     SearchFlag Quiescence(int alpha, int beta, int depthFromRoot);
     void storeKillerMove(int depth, Move move);

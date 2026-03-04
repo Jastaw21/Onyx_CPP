@@ -11,6 +11,7 @@
 #include "Referee.h"
 #include "SearchController.h"
 
+constexpr int maxExtensions = 50;
 
 SearchResults Searcher::search(const SearchOptions& options){
     bestScore = -INF;
@@ -29,7 +30,7 @@ SearchResults Searcher::search(const SearchOptions& options){
         for (int& i: pvLength)
             i = 0;
 
-        const auto [score, completed] = DoSearch(depth, 0, -INF, INF);
+        const auto [score, completed] = DoSearch(depth, 0, -INF, INF,0);
 
         if (!completed)
             break; // stop requested
@@ -91,7 +92,7 @@ int Searcher::EncodeMateScore(const int score, const int depthFromRoot){
     return score;
 }
 
-SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot, int alpha, const int beta){
+SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot, int alpha, const int beta, int numExtensions){
     if (statistics_.nodes % 2047 == 0 && token_.isStopped())
         return SearchFlag::Abort();
 
@@ -132,16 +133,26 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         // reset the pv
         pvLength[depthFromRoot + 1] = 0;
 
-        // check if capture before move, and if in check after
+        // we need to check these things before making the move
         auto capturedPiece = board.pieceAtSquare(move.to());
+        auto pieceMoved = board.pieceAtSquare(move.from());
+        auto [rank, file] = squareToRankAndFile(move.to());
+        const bool isPrePromotion = pieceMoved.type() == Pawn && (rank == 1 || rank == 6);
+
         board.makeMove(move);
         const auto isInCheckAfterMove = Referee::IsInCheck(board, board.whiteToMove());
+
+        auto extension = 0;
+        if (numExtensions <= maxExtensions && (isInCheckAfterMove || isPrePromotion)) {
+            extension = 1;
+            numExtensions ++;
+        }
 
         bool needsFullSearch = true;
         SearchFlag searchResults;
 
         // try a slightly reduced search
-        if (!isInCheckAfterMove && depthRemaining >= 2 && !capturedPiece.exists()) {
+        if (!isInCheckAfterMove && extension == 0 && depthRemaining >= 2 && !capturedPiece.exists()) {
             int reduction = 0;
             if (allMoveCount >= 5)
                 reduction = 1;
@@ -150,7 +161,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
 
             if (reduction > 0) {
                 statistics_.reducedSearches++;
-                searchResults = DoSearch(depthRemaining - 1 - reduction, depthFromRoot + 1, -alpha - 1, -alpha);
+                searchResults = DoSearch(depthRemaining - 1 - reduction, depthFromRoot + 1, -alpha - 1, -alpha, numExtensions);
                 const auto reducedEval = -searchResults.score;
                 needsFullSearch = reducedEval > alpha;
                 if (needsFullSearch) statistics_.fullResearches++;
@@ -158,7 +169,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         }
 
         if (needsFullSearch)
-            searchResults = DoSearch(depthRemaining - 1, depthFromRoot + 1, -beta, -alpha);
+            searchResults = DoSearch(depthRemaining - 1 + extension, depthFromRoot + 1, -beta, -alpha, numExtensions);
         board.unmakeMove(move);
 
         if (!searchResults.completed) return SearchFlag::Abort();
@@ -236,8 +247,12 @@ bool Searcher::ProbeTT(Move& outTTMove, int& outTTScore, const int depthFromRoot
 }
 
 SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRoot){
+
     if (statistics_.nodes % 2047 == 0 && token_.isStopped())
         return SearchFlag::Abort();
+
+    if (Referee::isDraw(board))
+        return SearchFlag{0,true};
 
     const TTEntry* tt = controller_->transpositionTable().GetEntry(board.getHash());
     Move ttMove;
