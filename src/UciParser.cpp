@@ -40,6 +40,7 @@ std::optional<Command> UCIParser::parse(const std::string& parseTarget){
 }
 
 
+
 Token UCIParser::peek(){
     if (currentToken < tokens.size()) { return tokens.at(currentToken); }
     return Token{.type = TokenType::EOF_TOKEN, .value = ""};

@@ -277,13 +277,13 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
     if (!isInCheck) {
         if (standPat >= beta)
             return SearchFlag{beta, true};
-        auto originalAlpha = alpha;
-        if (standPat > alpha)
-            alpha = standPat;
-        if (standPat + 950 <= originalAlpha) {
+        if (standPat + 900 < alpha) {
             statistics_.deltaCutoffs++;
             return SearchFlag{alpha,true};
         }
+        if (standPat > alpha)
+            alpha = standPat;
+
     }
 
     auto moves = MoveList(board, !isInCheck);
