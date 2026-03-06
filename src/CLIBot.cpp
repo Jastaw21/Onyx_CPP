@@ -8,6 +8,11 @@
 
 #include "PerftRunner.h"
 
+void CliBot::onSetOption(const SetOptionCommand& setOptionCommand){
+    options_.setValue(setOptionCommand.name, setOptionCommand.value);
+    PushOptions();
+}
+
 void CliBot::onDepthComplete(SearchInfo& info){
 
 }
@@ -15,6 +20,8 @@ void CliBot::onDepthComplete(SearchInfo& info){
 void CliBot::onUCI(const UCICommand&){
     std::cout << "id name " << ID << std::endl;
     std::cout << "id author JackWeddell" << std::endl;
+    std::cout << std::endl;
+    options_.write();
     std::cout << "uciok" << std::endl;
 }
 

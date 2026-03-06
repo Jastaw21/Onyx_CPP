@@ -5,7 +5,6 @@
 #ifndef ONYXCPP_SEARCHTHREAD_H
 #define ONYXCPP_SEARCHTHREAD_H
 #include <condition_variable>
-#include <iostream>
 #include <thread>
 #include <utility>
 
@@ -43,6 +42,9 @@ public:
             searching = true;
         }
         cv.notify_one();
+    }
+    Searcher& GetSearcher(){
+        return searcher_;
     }
 
     void Stop(){ token_.stop(); }

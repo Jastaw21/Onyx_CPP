@@ -3,6 +3,7 @@
 //
 
 #include "../include/SearchController.h"
+#include  "Options.h"
 
 SearchController::SearchController(Board& board) : board_(board), transpositionTable_(512), worker_(
                                                        std::make_unique<SearchThread>(
@@ -27,6 +28,12 @@ void SearchController::start(const SearchOptions& options){
 
     age++;
 }
+
+void SearchController::PushOptions(Options& options){
+    auto& searchExtOpt = options["CheckExtDepth"];
+    worker_->GetSearcher().CheckExtensionDepth = std::get<int>(searchExtOpt.value);
+}
+
 
 void SearchController::onDepthComplete(const SearchInfo& info) const{
     auto te = timer_.elapsedMs();

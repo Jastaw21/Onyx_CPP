@@ -13,11 +13,16 @@
 #include "Timer.h"
 #include "TranspositionTable.h"
 
+using InfoCallback = std::function<void(const SearchInfo&)>;
+
 
 class SearchController {
 public:
-
-    using InfoCallback = std::function<void(const SearchInfo&)>;
+    ~SearchController() {
+        monitoring_ = false;
+        if (timerThread_.joinable())
+            timerThread_.join();
+    }
 
     explicit SearchController(Board& board);
     void start(const SearchOptions& options);
@@ -30,11 +35,9 @@ public:
             timerThread_.join();
     }
 
-    ~SearchController() {
-        monitoring_ = false;
-        if (timerThread_.joinable())
-            timerThread_.join();
-    }
+    void PushOptions(class Options& options);
+
+
 
     TranspositionTable& transpositionTable(){ return transpositionTable_; }
     SearchResults results() const{ return worker_->getLastResults(); }

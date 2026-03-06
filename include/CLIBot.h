@@ -4,6 +4,7 @@
 
 #ifndef ONYXCPP_CLIBOT_H
 #define ONYXCPP_CLIBOT_H
+#include "Options.h"
 #include "SearchController.h"
 #include "Searcher.h"
 #include "UciParser.h"
@@ -18,25 +19,40 @@ Overloaded(Ts...) -> Overloaded<Ts...>;
 
 class CliBot {
 public:
-    CliBot() : controller_(board_) {}
-    Board& GetBoard() { return board_; }
 
+    CliBot() : controller_(board_){
+        Option checkExtensionDepth = {
+                    .name = "CheckExtDepth",
+                    .value = 1,
+                    .min = 0,
+                    .max = 5,
+                    .defaultValue = 1,
+                    .isValid = true
+                };
+        options_.addOption(checkExtensionDepth);
+    }
+
+    Board& GetBoard(){ return board_; }
+
+
+    void onSetOption(const SetOptionCommand& setOptionCommand);
 
     // clang-format off
-    void HandleCommand(const Command& cmd) {
+    void HandleCommand(const Command& cmd){
+
         std::visit(Overloaded{
-            [this](const UCICommand& c)        { onUCI(c); },
-            [this](const GoCommand& c)         { onGo(c); },
-            [this](const StopCommand& c)       { onStop(c); },
-            [this](const QuitCommand& c)       { onQuit(c); },
-            [this](const IsReadyCommand& c)    { onIsReady(c); },
-            [this](const PositionCommand& c)   { onPosition(c); },
-            [this](const NewGameCommand& c)    { onNewGame(c); },
-                [this](const PrintDebugCommand& c)    { onPrintDebug(c); },
-
-
+               [this](const UCICommand& c)          { onUCI(c); },
+               [this](const GoCommand& c)           { onGo(c); },
+               [this](const StopCommand& c)         { onStop(c); },
+               [this](const QuitCommand& c)         { onQuit(c); },
+               [this](const IsReadyCommand& c)      { onIsReady(c); },
+               [this](const PositionCommand& c)     { onPosition(c); },
+               [this](const NewGameCommand& c)      { onNewGame(c); },
+               [this](const PrintDebugCommand& c)   { onPrintDebug(c); },
+               [this](const SetOptionCommand& c)    { onSetOption(c); }
         }, cmd);
     }
+
     // clang-format on
 
 private:
@@ -55,6 +71,8 @@ private:
     void onNewGame(const NewGameCommand&);
     void onPrintDebug(PrintDebugCommand printDebugCommand);
 
+    Options options_{};
+    void PushOptions(){ controller_.PushOptions(options_); }
 };
 
 

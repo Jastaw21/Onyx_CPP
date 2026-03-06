@@ -9,6 +9,7 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <variant>
 struct SearchInfo;
 using Square = int8_t;
 using Bitboard = uint64_t;
@@ -44,8 +45,7 @@ struct Statistics {
                 std::to_string(hashCutoffs) << " reduced: " << std::to_string(reducedSearches) << " full: " << std::to_string(fullResearches) <<  std::endl;
     }
 };
-
-
+using OptionValue = std::variant<int, bool, std::string>;
 using InfoCallback = std::function<void(const SearchInfo&)>;
 
 #endif //ONYXCPP_TYPES_H

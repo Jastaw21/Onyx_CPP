@@ -41,6 +41,7 @@ add_library(OnyxCoreLib
         include/Zobrist.h
         src/Zobrist.cpp
         src/MoveList.cpp
+        include/Options.h
 )
 add_subdirectory(tests)
 target_include_directories(OnyxCoreLib

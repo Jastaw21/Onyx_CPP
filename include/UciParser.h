@@ -12,7 +12,9 @@
 
 #include <vector>
 
+
 #include "TimeControl.h"
+#include "types.h"
 #include "UciTokeniser.h"
 
 
@@ -38,6 +40,12 @@ struct PositionCommand {
 
 struct NewGameCommand {};
 struct PrintDebugCommand {};
+
+struct SetOptionCommand {
+    std::string name;
+    OptionValue value;
+};
+
 using Command = std::variant<
     UCICommand,
     GoCommand,
@@ -46,7 +54,8 @@ using Command = std::variant<
     IsReadyCommand,
     PositionCommand,
     NewGameCommand,
-PrintDebugCommand
+PrintDebugCommand,
+SetOptionCommand
 >;
 
 class UCIParser {
@@ -64,6 +73,7 @@ private:
 
     std::optional<Command> parsePosition();
     std::optional<Command> parseGo();
+    std::optional<Command> parseSetOption();
 
 };
 

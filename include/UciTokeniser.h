@@ -34,7 +34,7 @@ enum class TokenType {
     FEN_TOKEN,
 
     // non uci helpers
-    DEBUG
+    DEBUG, True, False
 };
 
 struct Token {

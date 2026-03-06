@@ -55,6 +55,8 @@ public:
     static int DecodeMateScore(int score, int depthFromRoot);
     static int EncodeMateScore(int score, int depthFromRoot);
 
+    int CheckExtensionDepth = 1;
+
 private:
 
     Board& board;

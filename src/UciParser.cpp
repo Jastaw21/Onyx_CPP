@@ -34,6 +34,8 @@ std::optional<Command> UCIParser::parse(const std::string& parseTarget){
         if (type == TokenType::POSITION) { return parsePosition(); }
 
         if (type == TokenType::DEBUG) { return PrintDebugCommand{}; }
+
+        if (type == TokenType::SETOPTION) { return parseSetOption(); }
     }
 
     return std::nullopt; // no valid command found
@@ -137,4 +139,35 @@ std::optional<Command> UCIParser::parseGo(){
     }
     result.timeControl = tc;
     return result;
+}
+
+std::optional<Command> UCIParser::parseSetOption(){
+    if (peek().type != TokenType::NAME)
+        return std::nullopt;
+    consume();
+
+    if (peek().type != TokenType::STRING_LITERAL)
+        return std::nullopt;
+    std::string name = consume().value;
+
+    if (peek().type != TokenType::VALUE)
+        return std::nullopt;
+    consume();
+
+    if (peek().type == TokenType::STRING_LITERAL) {
+        std::string rawValue = consume().value;
+
+        return SetOptionCommand{
+                    name, rawValue
+                };;
+    }
+    if (peek().type == TokenType::True)
+        return SetOptionCommand{name,true};
+    if (peek().type == TokenType::False)
+        return SetOptionCommand{name,false};
+
+    if (peek().type == TokenType::INT_LITERAL)
+        return SetOptionCommand{name,std::stoi(consume().value)};
+
+    return std::nullopt;
 }
