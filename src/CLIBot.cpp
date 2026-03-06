@@ -17,7 +17,7 @@ void CliBot::onDepthComplete(SearchInfo& info){
 
 }
 
-void CliBot::onUCI(const UCICommand&){
+void CliBot::onUCI(const UCICommand&) const{
     std::cout << "id name " << ID << std::endl;
     std::cout << "id author JackWeddell" << std::endl;
     std::cout << std::endl;
@@ -56,6 +56,6 @@ void CliBot::onPosition(const PositionCommand& command){
     }
 }
 void CliBot::onNewGame(const NewGameCommand&){}
-void CliBot::onPrintDebug(PrintDebugCommand printDebugCommand){
+void CliBot::onPrintDebug(PrintDebugCommand printDebugCommand) const{
     std::cout <<std::to_string( board_.getHash()) << " " << board_.getFen() << std::endl;
 }

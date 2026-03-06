@@ -21,15 +21,15 @@ class CliBot {
 public:
 
     CliBot() : controller_(board_){
-        Option checkExtensionDepth = {
-                    .name = "CheckExtDepth",
-                    .value = 1,
-                    .min = 0,
-                    .max = 5,
-                    .defaultValue = 1,
+        Option lmrThreshold = {
+                    .name = "lmrThreshold",
+                    .value = 5,
+                    .min = 1,
+                    .max = 7,
+                    .defaultValue = 5,
                     .isValid = true
                 };
-        options_.addOption(checkExtensionDepth);
+        options_.addOption(lmrThreshold);
     }
 
     Board& GetBoard(){ return board_; }
@@ -60,16 +60,16 @@ private:
     Board board_;
     SearchController controller_;
     std::string ID = "OnyxCPP v0.0";
-    void onDepthComplete(SearchInfo& info);
+    static void onDepthComplete(SearchInfo& info);
 
-    void onUCI(const UCICommand&);
+    void onUCI(const UCICommand&) const;
     void onGo(const GoCommand&);
     void onStop(const StopCommand&);
     void onQuit(const QuitCommand&);
-    void onIsReady(const IsReadyCommand&);
+    static void onIsReady(const IsReadyCommand&);
     void onPosition(const PositionCommand&);
-    void onNewGame(const NewGameCommand&);
-    void onPrintDebug(PrintDebugCommand printDebugCommand);
+    static void onNewGame(const NewGameCommand&);
+    void onPrintDebug(PrintDebugCommand printDebugCommand) const;
 
     Options options_{};
     void PushOptions(){ controller_.PushOptions(options_); }

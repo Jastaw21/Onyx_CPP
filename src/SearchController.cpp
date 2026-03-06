@@ -29,9 +29,9 @@ void SearchController::start(const SearchOptions& options){
     age++;
 }
 
-void SearchController::PushOptions(Options& options){
-    auto& searchExtOpt = options["CheckExtDepth"];
-    worker_->GetSearcher().CheckExtensionDepth = std::get<int>(searchExtOpt.value);
+void SearchController::PushOptions(Options& options) const{
+    const auto& lmrOption = options["lmrThreshold"];
+    worker_->GetSearcher().LMRThreshold = std::get<int>(lmrOption.value);
 }
 
 

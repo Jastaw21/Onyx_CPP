@@ -162,12 +162,13 @@ std::optional<Command> UCIParser::parseSetOption(){
                 };;
     }
     if (peek().type == TokenType::True)
-        return SetOptionCommand{name,true};
+        {consume();return SetOptionCommand{name,true};}
     if (peek().type == TokenType::False)
-        return SetOptionCommand{name,false};
+        {consume();return SetOptionCommand{name,false};}
 
-    if (peek().type == TokenType::INT_LITERAL)
+    if (peek().type == TokenType::INT_LITERAL) {
         return SetOptionCommand{name,std::stoi(consume().value)};
+    }
 
     return std::nullopt;
 }

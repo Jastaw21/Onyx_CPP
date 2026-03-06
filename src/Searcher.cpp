@@ -11,7 +11,7 @@
 #include "Referee.h"
 #include "SearchController.h"
 
-constexpr int maxExtensions = 50;
+constexpr int maxExtensions = 10;
 
 SearchResults Searcher::search(const SearchOptions& options){
     bestScore = -INF;
@@ -144,7 +144,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
 
         auto extension = 0;
         if (numExtensions <= maxExtensions && (isInCheckAfterMove || isPrePromotion)) {
-            extension = CheckExtensionDepth;
+            extension = 1;
             numExtensions ++;
         }
 
@@ -154,7 +154,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         // try a slightly reduced search
         if (!isInCheckAfterMove && extension == 0 && depthRemaining >= 2 && !capturedPiece.exists()) {
             int reduction = 0;
-            if (allMoveCount >= 5)
+            if (allMoveCount >= LMRThreshold)
                 reduction = 1;
             if (depthRemaining >= 4 && allMoveCount >= 8)
                 reduction = 2;

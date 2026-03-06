@@ -35,7 +35,7 @@ public:
             timerThread_.join();
     }
 
-    void PushOptions(class Options& options);
+    void PushOptions(class Options& options) const;
 
 
 
