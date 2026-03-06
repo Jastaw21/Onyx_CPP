@@ -156,7 +156,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
             int reduction = 0;
             if (allMoveCount >= LMRThreshold)
                 reduction = 1;
-            if (depthRemaining >= 4 && allMoveCount >= 8)
+            if (depthRemaining >= 4 && allMoveCount >= DeepLMR)
                 reduction = 2;
 
             if (reduction > 0) {

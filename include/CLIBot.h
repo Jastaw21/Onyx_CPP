@@ -23,13 +23,23 @@ public:
     CliBot() : controller_(board_){
         Option lmrThreshold = {
                     .name = "lmrThreshold",
-                    .value = 5,
+                    .value = 4,
                     .min = 1,
                     .max = 7,
-                    .defaultValue = 5,
+                    .defaultValue = 4,
                     .isValid = true
                 };
         options_.addOption(lmrThreshold);
+
+        Option deepLMR = {
+            .name = "deepLMR",
+            .value = 8,
+            .min = 8,
+            .max = 10,
+            .defaultValue = 8,
+            .isValid = true
+        };
+        options_.addOption(deepLMR);
     }
 
     Board& GetBoard(){ return board_; }

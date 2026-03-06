@@ -89,8 +89,8 @@ Psq Evaluator::knightTables = Psq{
 
 // clang-format on
 int Evaluator::Evaluate(const Board& board){
-    const Bitboard whiteCount = static_cast<int>(std::popcount(board.getOccupancy(White)));
-    const Bitboard blackCount =  static_cast<int>(std::popcount(board.getOccupancy(Black)));
+    const Bitboard whiteCount = std::popcount(board.getOccupancy(White));
+    const Bitboard blackCount =  std::popcount(board.getOccupancy(Black));
 
     const auto whitePsqScore = EvaluateMaterial(board,true,0);
     const auto blackPsqScore = EvaluateMaterial(board,false,0);

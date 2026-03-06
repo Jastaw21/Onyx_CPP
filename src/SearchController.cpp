@@ -32,6 +32,10 @@ void SearchController::start(const SearchOptions& options){
 void SearchController::PushOptions(Options& options) const{
     const auto& lmrOption = options["lmrThreshold"];
     worker_->GetSearcher().LMRThreshold = std::get<int>(lmrOption.value);
+
+
+    const auto& deepLMR = options["deepLMR"];
+    worker_->GetSearcher().DeepLMR = std::get<int>(deepLMR.value);
 }
 
 
