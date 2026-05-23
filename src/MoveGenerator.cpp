@@ -24,7 +24,7 @@ void MoveGenerator::GenerateMoves(const Board& board, MoveList& moveSpan, const 
     const Bitboard us = board.getOccupancy(whiteToMove ? White : Black);
     const Bitboard them = board.getOccupancy(whiteToMove ? Black : White);
     const Piece theirKingPiece = whiteToMove ? Piece(King, Black) : Piece(King,White);
-    const Bitboard theirKing = board.getBoardByPiece(theirKingPiece);
+    const Bitboard theirKing = board.getOccupancy(theirKingPiece);
     generateBasicMoves(board, moveSpan, us, them, theirKing, capturesOnly);
     generatePawnMoves(board,moveSpan,us, them, theirKing, capturesOnly);
     if (board.castlingRights() == 0  || capturesOnly) return;
@@ -38,7 +38,7 @@ void MoveGenerator::generateBasicMoves(const Board& board, MoveList& moveSpan, c
     for (const auto piece: board.whiteToMove() ? whitePieces : blackPieces) {
         if (piece.type() == Pawn) continue;
 
-        Bitboard startingPoint = board.getBoardByPiece(piece);
+        Bitboard startingPoint = board.getOccupancy(piece);
         while (startingPoint) {
             const auto from = std::countr_zero(startingPoint);
             Bitboard movesFromHere = MagicBitboards::getMoves(piece, from, us | them);
@@ -66,7 +66,7 @@ void MoveGenerator::generatePawnMoves(const Board& board, MoveList& moveSpan, co
     const bool isWhite = board.whiteToMove();
     const auto pawn = isWhite ? Piece(Pawn, White) : Piece(Pawn, Black);
 
-    Bitboard startingPoint = board.getBoardByPiece(pawn);
+    Bitboard startingPoint = board.getOccupancy(pawn);
     while (startingPoint) {
         const auto from = std::countr_zero(startingPoint);
 

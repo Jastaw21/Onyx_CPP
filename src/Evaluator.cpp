@@ -110,7 +110,7 @@ MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite
 
 	for (auto const& piece : pieces) {
 		
-		auto placements = board.getBoardByPiece(piece);
+		auto placements = board.getOccupancy(piece);
 		const auto count = std::popcount(placements);
 		const auto pieceType = piece.type();
 		eval.materialScore += count * pieceValues[pieceType];

@@ -59,7 +59,7 @@ TEST(Core_Board, Init){
     Piece pieceAtA1 = emptyBoard.pieceAtSquare(0);
     EXPECT_EQ(pieceAtA1, wp);
 
-    Bitboard wpBoard = emptyBoard.getBoardByPiece(wp);
+    Bitboard wpBoard = emptyBoard.getOccupancy(wp);
     EXPECT_EQ(wpBoard, 1);
 }
 
@@ -67,8 +67,8 @@ TEST(Core_Board, InitFromFen){
     auto startFen = Board(FenHelpers::StartPos);
 
     // pawns in the right place
-    EXPECT_EQ(startFen.getBoardByPiece(Piece(Pawn,White)), 0xff00);
-    EXPECT_EQ(startFen.getBoardByPiece(Piece(Pawn,Black)), 0xff000000000000);
+    EXPECT_EQ(startFen.getOccupancy(Piece(Pawn,White)), 0xff00);
+    EXPECT_EQ(startFen.getOccupancy(Piece(Pawn,Black)), 0xff000000000000);
 
     // castling right
     EXPECT_EQ(startFen.castlingRights(),
@@ -87,7 +87,7 @@ TEST(Core_Board, GetFen){
 
     // clang-format off
     startFen.loadFen(           "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-    EXPECT_EQ(startFen.getBoardByPiece(Piece(Pawn,White)),0x81000e700);
+    EXPECT_EQ(startFen.getOccupancy(Piece(Pawn,White)),0x81000e700);
     EXPECT_EQ(startFen.getFen(),   "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
     // clang-format on
 }
