@@ -17,6 +17,9 @@ public:
 
     static int Evaluate(const Board& board);
     static MaterialEval EvaluateMaterial(const Board& board, bool forWhite, float endGameRatio);
+    static int KingSafetyScore(bool forWhite, const Board& board);
+    static int KingShieldScore(bool forWhite, const Board& board);
+    static int KingOpenFileScore(bool forWhite, const Board& board);
 
 private:
 
@@ -29,7 +32,6 @@ private:
 
     static int getScoreOnSquare(PieceType type, Square onSquare, bool isWhite, bool endGame);
     static Psq& getTableByPieceType(const PieceType type);
-    static int kingSafetyScore(bool forWhite, const Board& board);
     static std::array<Piece, 6> whitePieces;
     static std::array<Piece, 6> blackPieces;
 };

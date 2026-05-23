@@ -240,11 +240,10 @@ void MagicBitboards::initKingMoves(){
 }
 
 void MagicBitboards::initPawnAttacks(){
-    // white
 
-    for (int i = 0; i < 64; i++) {
+    // white
+    for (int i = 0; i < 55; i++) {
         pawnAttacks[0][i] = 0ULL;
-        if (i < 8 || i > 55) continue;
 
         Bitboard possibleAttacks = 0ULL;
         const RankAndFile raf = squareToRankAndFile(i);
@@ -264,9 +263,9 @@ void MagicBitboards::initPawnAttacks(){
     }
 
     // black
-    for (int i = 0; i < 64; i++) {
+    for (int i = 63; i > 7; i--) {
         pawnAttacks[1][i] = 0ULL;
-        if (i < 8 || i > 55) continue;
+
 
         Bitboard possibleAttacks = 0ULL;
         const RankAndFile raf = squareToRankAndFile(i);
@@ -299,10 +298,15 @@ Bitboard MagicBitboards::getKingShield(Square square, bool isWhite){
         return 0ULL;
 
     const auto index = isWhite ? 0 : 1;
-    auto attacks = pawnAttacks[index][square];
-    const auto squareOffset = isWhite ? 8 : -8;
 
+    // add the sideways ones
+    auto attacks = pawnAttacks[index][square];
+
+    // add the forward square
+    const auto squareOffset = isWhite ? 8 : -8;
     attacks |= (1ULL << (square + squareOffset));
+
+
     return attacks;
 }
 
@@ -516,4 +520,5 @@ void MagicBitboards::init(){
     initKnightMoves();
     initKingMoves();
     initPawnAttacks();
+    initKingShields();
 }

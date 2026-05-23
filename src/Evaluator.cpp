@@ -94,8 +94,8 @@ int Evaluator::Evaluate(const Board& board){
 
 	const auto whitePsqScore = EvaluateMaterial(board,true,0);
     const auto blackPsqScore = EvaluateMaterial(board,false,0);
-	const auto w_kssScore = kingSafetyScore(true, board);
-	const auto b_kssScore = kingSafetyScore(false,board);
+	const auto w_kssScore = KingSafetyScore(true, board);
+	const auto b_kssScore = KingSafetyScore(false,board);
 
     score += whiteCount - blackCount;
 
@@ -181,27 +181,35 @@ Psq& Evaluator::getTableByPieceType(const PieceType type){
 	}
 }
 
-int Evaluator::kingSafetyScore(const bool forWhite, const Board& board){
-	int openFileScore = 0;
+int Evaluator::KingSafetyScore(const bool forWhite, const Board& board) {
+	return KingOpenFileScore(forWhite, board) + KingShieldScore(forWhite, board);
+}
+
+int Evaluator::KingShieldScore(const bool forWhite, const Board& board) {
 	const auto piece = Piece(King, forWhite ? White : Black);
 	const auto location = board.getOccupancy(piece);
-
+	if (location == 0ULL) return 0; // should never have no king but be careful.
 	const auto asSquare = static_cast<Square>(std::countr_zero(location));
-	const auto piecesAheadOnFile = board.countPawnsForwardOnFile(forWhite,asSquare);
-	if (piecesAheadOnFile == 0 )
-		openFileScore -= 30; // penalty for an open file
 
-
-	const auto shield = MagicBitboards::getKingShield(forWhite,asSquare);
+	const auto shield = MagicBitboards::getKingShield(forWhite, asSquare);
 	const auto numPossShields = std::popcount(shield);
 	const auto relevantPawn = Piece(Pawn, forWhite ? White : Black);
 	const auto actualPawnLocs = board.getOccupancy(relevantPawn);
 
-	const auto numActShields =  std::popcount(actualPawnLocs & shield);
-	const auto shieldScore = (numPossShields - numActShields) * -20;
+	const auto numActShields = std::popcount(actualPawnLocs & shield);
+	return (numPossShields - numActShields) * -20;
+}
 
+int Evaluator::KingOpenFileScore(const bool forWhite, const Board& board) {
+	const auto piece = Piece(King, forWhite ? White : Black);
+	const auto location = board.getOccupancy(piece);
+	if (location == 0ULL) return 0; // No king
+	const auto asSquare = static_cast<Square>(std::countr_zero(location));
 
-	return openFileScore + shieldScore;
+	const auto piecesAheadOnFile = board.countPawnsForwardOnFile(forWhite, asSquare);
+	if (piecesAheadOnFile == 0)
+		return -30; // penalty for an open file
+	return 0;
 }
 
 
