@@ -148,7 +148,7 @@ std::optional<Command> UCIParser::parseSetOption(){
 
     if (peek().type != TokenType::STRING_LITERAL)
         return std::nullopt;
-    std::string name = consume().value;
+    const std::string name = consume().value;
 
     if (peek().type != TokenType::VALUE)
         return std::nullopt;
