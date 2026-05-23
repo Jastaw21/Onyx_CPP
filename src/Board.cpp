@@ -223,7 +223,7 @@ int Board::countOnFile(const int file, const Piece piece) const{
     return std::popcount(fm & getOccupancy(piece));
 }
 
-int Board::countForwardsOnFile(const bool forwardsForWhite, Square square, const bool countAllPieces = false) const{
+int Board::countForwardsOnFile(const bool forwardsForWhite, const Square square, const bool countAllPieces = false) const{
 
     const auto file = squareToRankAndFile(square).file;
     const auto forwardSquare = forwardsForWhite ? square + 8 : square - 8;
@@ -234,7 +234,17 @@ int Board::countForwardsOnFile(const bool forwardsForWhite, Square square, const
     return std::popcount(fm & occupancy & forwardsMask);
 }
 
-int Board::countOnFile(int file, PieceType piece) const{
+int Board::countPawnsForwardOnFile(const bool forwardsForWhite, const Square square) const{
+
+    const auto file = squareToRankAndFile(square).file;
+    const auto forwardSquare = forwardsForWhite ? square + 8 : square - 8;
+    const auto forwardsMask = forwardsForWhite ? ~((1ULL << forwardSquare) - 1) : (1ULL << square) - 1;
+    const uint64_t fm = fileMask(file);
+    const auto occupancy = getOccupancy(Piece(Pawn,White)) | getOccupancy(Piece(Pawn,Black));
+    return std::popcount(fm & occupancy & forwardsMask);
+}
+
+int Board::countOnFile(const int file, const PieceType piece) const{
     const uint64_t fm = fileMask(file);
     const auto whiteOccupancy = getOccupancy(Piece(piece, White));
     const auto blackOccupancy = getOccupancy(Piece(piece, Black));

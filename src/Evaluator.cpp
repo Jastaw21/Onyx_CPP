@@ -4,9 +4,7 @@
 
 #include "Evaluator.h"
 
-
-
-
+#include "MagicBitboards.h"
 
 
 std::array<Piece,6> Evaluator::whitePieces = {
@@ -92,14 +90,19 @@ int Evaluator::Evaluate(const Board& board){
     const Bitboard whiteCount = std::popcount(board.getOccupancy(White));
     const Bitboard blackCount =  std::popcount(board.getOccupancy(Black));
 
-    const auto whitePsqScore = EvaluateMaterial(board,true,0);
-    const auto blackPsqScore = EvaluateMaterial(board,false,0);
+	int score = 0;
 
-    int score = 0;
+	const auto whitePsqScore = EvaluateMaterial(board,true,0);
+    const auto blackPsqScore = EvaluateMaterial(board,false,0);
+	const auto w_kssScore = kingSafetyScore(true, board);
+	const auto b_kssScore = kingSafetyScore(false,board);
 
     score += whiteCount - blackCount;
+
     score += whitePsqScore.materialScore - blackPsqScore.materialScore;
     score += whitePsqScore.pieceSquareScore - blackPsqScore.pieceSquareScore;
+
+	score += w_kssScore - b_kssScore;
 
     return score * (board.whiteToMove() ? 1 : -1);
 }
@@ -166,6 +169,7 @@ int Evaluator::getScoreOnSquare(const PieceType type, const Square onSquare, con
     return 0;
 }
 
+ // ReSharper disable once CppNotAllPathsReturnValue
 Psq& Evaluator::getTableByPieceType(const PieceType type){
 	switch (type) {
 		case Pawn       : return  pawnTables;
@@ -175,6 +179,29 @@ Psq& Evaluator::getTableByPieceType(const PieceType type){
 		case King       : return  kingTables;
 		case Bishop     : return  bishopTables;
 	}
+}
+
+int Evaluator::kingSafetyScore(const bool forWhite, const Board& board){
+	int openFileScore = 0;
+	const auto piece = Piece(King, forWhite ? White : Black);
+	const auto location = board.getOccupancy(piece);
+
+	const auto asSquare = static_cast<Square>(std::countr_zero(location));
+	const auto piecesAheadOnFile = board.countPawnsForwardOnFile(forWhite,asSquare);
+	if (piecesAheadOnFile == 0 )
+		openFileScore -= 30; // penalty for an open file
+
+
+	const auto shield = MagicBitboards::getKingShield(forWhite,asSquare);
+	const auto numPossShields = std::popcount(shield);
+	const auto relevantPawn = Piece(Pawn, forWhite ? White : Black);
+	const auto actualPawnLocs = board.getOccupancy(relevantPawn);
+
+	const auto numActShields =  std::popcount(actualPawnLocs & shield);
+	const auto shieldScore = (numPossShields - numActShields) * -20;
+
+
+	return openFileScore + shieldScore;
 }
 
 

@@ -26,6 +26,7 @@ class MagicBitboards {
     static Bitboard pawnAttacks[2][64];
     static Bitboard straightMagicNumbers[64];
     static Bitboard diagonalMagicNumbers[64];
+    static Bitboard kingShields[2][64];
 
 
     static void initStraightMagics();
@@ -33,6 +34,8 @@ class MagicBitboards {
     static void initKnightMoves();
     static void initKingMoves();
     static void initPawnAttacks();
+    static void initKingShields();
+    static Bitboard getKingShield(Square square, bool isWhite);
 
     static Bitboard getStraightMask(Square from);
     static Bitboard initStraightMovesOccupancy(Square, Bitboard occupancy);
@@ -53,6 +56,7 @@ public:
     static Bitboard getMoves(struct Piece piece, Square square, Bitboard occupancy);
     static Bitboard getPawnPushes(Square from, Bitboard occupancy, bool isWhite);
     static Bitboard getPawnAttacks(Square from, Bitboard occupancy, bool isWhite);
+    static Bitboard getKingShield(bool forWhite, Square from);
     static void init();
 
 };
