@@ -57,10 +57,15 @@ public:
     Square enPassantSquare() const{ return enPassantSquare_; }
 
     // occupancy
-    Bitboard getBoardByPiece(const Piece piece) const{ return boards_[piece.index()]; }
+    Bitboard getOccupancy(const Piece piece) const{ return boards_[piece.index()]; }
     Piece pieceAtSquare(const Square square) const{ return board_[square]; }
     Bitboard getOccupancy() const;
     std::array<Piece, 64>& getBoard(){ return board_; }
+
+    int countOnFile(int file) const; // any piece
+    int countOnFile(int file, Piece piece) const; // specific piece (colour included)
+    int countForwardsOnFile(bool forwardsForWhite, Square square, bool countAllPieces) const; // specific piece (colour included), forwards from square
+    int countOnFile(int file, PieceType piece) const; // piece type (regardless of colour)
 
     // fen loading/gettting
     void loadFen(const Fen& fen);

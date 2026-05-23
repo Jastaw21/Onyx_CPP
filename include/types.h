@@ -48,4 +48,52 @@ struct Statistics {
 using OptionValue = std::variant<int, bool, std::string>;
 using InfoCallback = std::function<void(const SearchInfo&)>;
 
+
+constexpr inline uint64_t FILE_A = 0x101010101010101;
+constexpr inline uint64_t FILE_B = 0x202020202020202;
+constexpr inline uint64_t FILE_C = 0x404040404040404;
+constexpr inline uint64_t FILE_D = 0x808080808080808;
+constexpr inline uint64_t FILE_E = 0x1010101010101010;
+constexpr inline uint64_t FILE_F = 0x2020202020202020;
+constexpr inline uint64_t FILE_G = 0x4040404040404040;
+constexpr inline uint64_t FILE_H = 0x8080808080808080;
+
+constexpr uint64_t fileMask(const int fileIndex){
+    switch (fileIndex) {
+        case (0): {
+            return FILE_A;
+            break;
+        }
+        case (1): {
+            return FILE_B;
+            break;
+        }
+        case (2): {
+            return FILE_C;
+            break;
+        }
+        case (3): {
+            return FILE_D;
+            break;
+        }
+        case (4): {
+            return FILE_E;
+            break;
+        }
+        case (5): {
+            return FILE_F;
+            break;
+        }
+        case (6): {
+            return FILE_G;
+            break;
+        }
+        case (7): {
+            return FILE_H;
+            break;
+        }
+        default: return 0ULL;
+    }
+}
+
 #endif //ONYXCPP_TYPES_H

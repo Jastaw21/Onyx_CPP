@@ -255,3 +255,26 @@ TEST(CoreTests, BuildBoardFromMoveString2){
 
 
 }
+
+TEST(CoreTests, CountPiecesOnFile){
+    auto board = Board("8/p7/p7/p7/p7/p7/p7/8 w - - 0 1");
+
+    // total count on file
+    EXPECT_EQ(board.countOnFile(0), 6);
+
+    // specific piece (w colour)
+    EXPECT_EQ(board.countOnFile(0,Piece(Pawn,White)),0);
+    EXPECT_EQ(board.countOnFile(0,Piece(Pawn,Black)),6);
+
+    // specific piece type (disregarding colour)
+    EXPECT_EQ(board.countOnFile(0,Pawn),6);
+
+    // counting all pieces
+    const auto whiteSquare = rankAndFileToSquare(2,0);
+    EXPECT_EQ(board.countForwardsOnFile(true,whiteSquare,true),4);
+    EXPECT_EQ(board.countForwardsOnFile(false,whiteSquare,true),1);
+
+    // counting only oppponents
+    EXPECT_EQ(board.countForwardsOnFile(true,whiteSquare,false),4);
+    EXPECT_EQ(board.countForwardsOnFile(false,whiteSquare,false),0);
+}
