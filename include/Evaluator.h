@@ -21,6 +21,7 @@ public:
     static int KingShieldScoreByColour(bool forWhite, const Board& board);
     static int KingOpenFileScore(bool forWhite, const Board& board);
     static int kingShieldPenalty;
+    static int openfilePenalty;
 
 private:
 

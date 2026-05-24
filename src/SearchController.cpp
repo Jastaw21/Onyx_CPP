@@ -38,16 +38,17 @@ void SearchController::PushOptions(Options& options) const{
 
     const auto& kingShieldSet = options["kspen"];
     Evaluator::kingShieldPenalty = std::get<int>(kingShieldSet.value);
+
+    const auto& ofPen = options["ofpen"];
+    Evaluator::openfilePenalty = std::get<int>(ofPen.value);
 }
 
-void SearchController::onNewGame(){
-    transpositionTable_.Reset();
-}
+void SearchController::onNewGame(){ transpositionTable_.Reset(); }
 
 
 void SearchController::onDepthComplete(const SearchInfo& info) const{
     const auto te = timer_.elapsedMs();
-    const auto elapsed = te < 1 ? 1 : te;
+    const auto elapsed = te < 1 ? 1 : te; // clamp to 1 to avoid div by 0
 
     std::cout
             << "info depth " << info.depth << " multipv 1 " << "score cp " << info.bestScore << " nodes "

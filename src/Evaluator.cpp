@@ -14,7 +14,8 @@ std::array<Piece,6>  Evaluator::blackPieces = {
     Piece(Pawn,Black),  Piece(Knight,Black),Piece(King,Black),Piece(Queen,Black),Piece(Rook,Black),Piece(Bishop,Black)
 };
 
-int Evaluator::kingShieldPenalty = 20;
+int Evaluator::kingShieldPenalty = 10;
+int Evaluator::openfilePenalty = 10;
 
 // clang-format off
 Psq Evaluator::pawnTables = Psq{
@@ -182,7 +183,7 @@ Psq& Evaluator::getTableByPieceType(const PieceType type){
 }
 
 int Evaluator::KingSafetyScore(const bool forWhite, const Board& board) {
-	return KingShieldScoreByColour(forWhite, board);
+	return KingShieldScoreByColour(forWhite, board) + KingOpenFileScore(forWhite,board);
 }
 
 int Evaluator::KingShieldScoreByColour(const bool forWhite, const Board& board) {
@@ -208,7 +209,7 @@ int Evaluator::KingOpenFileScore(const bool forWhite, const Board& board) {
 
 	const auto piecesAheadOnFile = board.countPawnsForwardOnFile(forWhite, asSquare);
 	if (piecesAheadOnFile == 0)
-		return -30; // penalty for an open file
+		return -openfilePenalty; // penalty for an open file
 	return 0;
 }
 

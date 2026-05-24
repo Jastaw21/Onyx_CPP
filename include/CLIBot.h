@@ -43,13 +43,23 @@ public:
 
         Option kingShieldPenalty = {
                     .name = "kspen",
-                    .value = 20,
+                    .value = 10,
                     .min = 0,
                     .max = 100,
-                    .defaultValue = 8,
+                    .defaultValue = 10,
                     .isValid = true
                 };
         options_.addOption(kingShieldPenalty);
+
+        Option openFilePenalty = {
+                    .name = "ofpen",
+                    .value = 5,
+                    .min = 0,
+                    .max = 100,
+                    .defaultValue = 5,
+                    .isValid = true
+                };
+        options_.addOption(openFilePenalty);
     }
 
     Board& GetBoard(){ return board_; }
