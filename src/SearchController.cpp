@@ -3,6 +3,8 @@
 //
 
 #include "../include/SearchController.h"
+
+#include "Evaluator.h"
 #include  "Options.h"
 
 SearchController::SearchController(Board& board) : board_(board), transpositionTable_(512), worker_(
@@ -30,8 +32,12 @@ void SearchController::start(const SearchOptions& options){
 }
 
 void SearchController::PushOptions(Options& options) const{
+    // applies the set options
     const auto& deepLMR = options["deepLMR"];
     worker_->GetSearcher().DeepLMR = std::get<int>(deepLMR.value);
+
+    const auto& kingShieldSet = options["kspen"];
+    Evaluator::kingShieldPenalty = std::get<int>(kingShieldSet.value);
 }
 
 

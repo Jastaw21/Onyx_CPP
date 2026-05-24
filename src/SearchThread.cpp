@@ -19,7 +19,7 @@ void SearchThread::loop(){
         const auto res = searcher_.search(options);
         std::cout << "bestmove " << moveToNotation(res.bestMove) << std::endl;
 
-        //controller_->transpositionTable().Log();
+
         searcher_.Log(); {
             std::lock_guard lock(mutex);
             lastResults = res;

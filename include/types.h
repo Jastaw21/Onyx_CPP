@@ -39,7 +39,7 @@ struct Statistics {
     float ebf() const{ return depth > 0 ? std::pow(nodes, 1.0f / depth) : 0.0f; }
 
     void Log() const{
-        if (false)
+        if (true)
             std::cerr << "ENGINE\n Nodes: " << std::to_string(nodes) << " QNodes: " << std::to_string(qNodes) <<
                     " ebf : "
                     << std::to_string(ebf()) << " betaCutoffs: " << std::to_string(betaCutoffs) << " hash cut: " <<

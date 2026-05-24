@@ -32,14 +32,24 @@ public:
         options_.addOption(lmrThreshold);
 
         Option deepLMR = {
-            .name = "deepLMR",
-            .value = 8,
-            .min = 8,
-            .max = 10,
-            .defaultValue = 8,
-            .isValid = true
-        };
+                    .name = "deepLMR",
+                    .value = 8,
+                    .min = 8,
+                    .max = 10,
+                    .defaultValue = 8,
+                    .isValid = true
+                };
         options_.addOption(deepLMR);
+
+        Option kingShieldPenalty = {
+                    .name = "kspen",
+                    .value = 20,
+                    .min = 0,
+                    .max = 100,
+                    .defaultValue = 8,
+                    .isValid = true
+                };
+        options_.addOption(kingShieldPenalty);
     }
 
     Board& GetBoard(){ return board_; }

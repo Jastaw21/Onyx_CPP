@@ -14,7 +14,7 @@ std::array<Piece,6>  Evaluator::blackPieces = {
     Piece(Pawn,Black),  Piece(Knight,Black),Piece(King,Black),Piece(Queen,Black),Piece(Rook,Black),Piece(Bishop,Black)
 };
 
-
+int Evaluator::kingShieldPenalty = 20;
 
 // clang-format off
 Psq Evaluator::pawnTables = Psq{
@@ -87,8 +87,8 @@ Psq Evaluator::knightTables = Psq{
 
 // clang-format on
 int Evaluator::Evaluate(const Board& board){
-    const Bitboard whiteCount = std::popcount(board.getOccupancy(White));
-    const Bitboard blackCount =  std::popcount(board.getOccupancy(Black));
+    const int whiteCount = std::popcount(board.getOccupancy(White));
+    const int blackCount =  std::popcount(board.getOccupancy(Black));
 
 	int score = 0;
 
@@ -182,10 +182,10 @@ Psq& Evaluator::getTableByPieceType(const PieceType type){
 }
 
 int Evaluator::KingSafetyScore(const bool forWhite, const Board& board) {
-	return KingOpenFileScore(forWhite, board) + KingShieldScore(forWhite, board);
+	return KingShieldScoreByColour(forWhite, board);
 }
 
-int Evaluator::KingShieldScore(const bool forWhite, const Board& board) {
+int Evaluator::KingShieldScoreByColour(const bool forWhite, const Board& board) {
 	const auto piece = Piece(King, forWhite ? White : Black);
 	const auto location = board.getOccupancy(piece);
 	if (location == 0ULL) return 0; // should never have no king but be careful.
@@ -197,7 +197,7 @@ int Evaluator::KingShieldScore(const bool forWhite, const Board& board) {
 	const auto actualPawnLocs = board.getOccupancy(relevantPawn);
 
 	const auto numActShields = std::popcount(actualPawnLocs & shield);
-	return (numPossShields - numActShields) * -20;
+	return (numPossShields - numActShields) * -kingShieldPenalty;
 }
 
 int Evaluator::KingOpenFileScore(const bool forWhite, const Board& board) {

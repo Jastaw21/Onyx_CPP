@@ -41,27 +41,27 @@ TEST(EvaluatorTests, KingShield) {
     // equal 
     auto board = Board();
     MagicBitboards::init();
-    auto allShields = Evaluator::KingShieldScore(true, board);
+    const auto allShieldsWhite = Evaluator::KingShieldScoreByColour(true, board);
 
 
-    // remove one white shielder
+    // remove one white shielding pawn
     board.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1");
-    auto oneDown = Evaluator::KingShieldScore(true, board);
+    const auto oneDownWhite = Evaluator::KingShieldScoreByColour(true, board);
 
-    EXPECT_LT(oneDown, allShields);
+    EXPECT_LT(oneDownWhite, allShieldsWhite);
 
     // remove the second
     board.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPP2PPP/RNBQKBNR b KQkq - 0 1");
-    auto twoDown = Evaluator::KingShieldScore(true, board);
-    EXPECT_LT(twoDown, oneDown);
+    const auto twoDown = Evaluator::KingShieldScoreByColour(true, board);
+    EXPECT_LT(twoDown, oneDownWhite);
 
     // remove the third
     board.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPP3PP/RNBQKBNR b KQkq - 0 1");
-    auto threeDown = Evaluator::KingShieldScore(true, board);
+    const auto threeDown = Evaluator::KingShieldScoreByColour(true, board);
     EXPECT_LT(threeDown, twoDown);
 
-    // remove a random, non shielding pawn
+    // remove a random, non-shielding pawn
     board.loadFen("rnbqkbnr/pppppppp/8/8/8/8/1PP3PP/RNBQKBNR b KQkq - 0 1");
-    auto randomPawn = Evaluator::KingShieldScore(true, board);
+    const auto randomPawn = Evaluator::KingShieldScoreByColour(true, board);
     EXPECT_EQ(randomPawn, threeDown);
 }
