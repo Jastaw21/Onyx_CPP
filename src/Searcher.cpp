@@ -212,9 +212,13 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
         else score = 0;
     } else score = alpha;
 
-    controller_->transpositionTable().Store(board.getHash(), bestMoveInNode,
-                                            EncodeMateScore(score, depthFromRoot),
-                                            storingBound, depthRemaining, controller_->getAge());
+    if (score != 0 || !Referee::isDraw(board))
+        // condition should not store draw scores
+    {
+        controller_->transpositionTable().Store(board.getHash(), bestMoveInNode,
+                                                EncodeMateScore(score, depthFromRoot),
+                                                storingBound, depthRemaining, controller_->getAge());
+    }
 
     return SearchFlag{score, true};
 }
