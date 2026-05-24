@@ -10,6 +10,7 @@
 #include "MoveList.h"
 #include "Referee.h"
 #include "SearchController.h"
+#include "../cmake-build-release/_deps/googletest-src/googlemock/include/gmock/gmock-matchers.h"
 
 constexpr int maxExtensions = 10;
 
@@ -337,6 +338,13 @@ bool Searcher::ProbeTT(Move& outTTMove, int& outTTScore, const int depthFromRoot
 
     // score not in bounds - bail out
     if (!canUse)
+        return false;
+
+    board.makeMove(tt->move);
+    bool givesDraw = Referee::isDraw(board);
+    board.unmakeMove(tt->move);
+
+    if (givesDraw)
         return false;
 
     // otherwise - get a hash cutoff
