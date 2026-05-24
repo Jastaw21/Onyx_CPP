@@ -46,6 +46,8 @@ struct SetOptionCommand {
     OptionValue value;
 };
 
+struct EvalCommand{};
+
 using Command = std::variant<
     UCICommand,
     GoCommand,
@@ -54,8 +56,9 @@ using Command = std::variant<
     IsReadyCommand,
     PositionCommand,
     NewGameCommand,
-PrintDebugCommand,
-SetOptionCommand
+    PrintDebugCommand,
+    SetOptionCommand,
+    EvalCommand
 >;
 
 class UCIParser {

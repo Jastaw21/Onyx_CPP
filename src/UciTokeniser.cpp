@@ -111,6 +111,7 @@ void Tokeniser::handleToken(std::string& builtToken){
     else if (builtToken == "false") {type = TokenType::False;}
     else if (builtToken == "name") {type = TokenType::NAME;}
     else if (builtToken == "value") {type = TokenType::VALUE;}
+    else if (builtToken == "eval") {type = TokenType::EVAL;}
 
     //unknown token
     else { type = getUnknownTokenType(builtToken); }

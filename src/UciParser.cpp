@@ -36,6 +36,8 @@ std::optional<Command> UCIParser::parse(const std::string& parseTarget){
         if (type == TokenType::DEBUG) { return PrintDebugCommand{}; }
 
         if (type == TokenType::SETOPTION) { return parseSetOption(); }
+
+        if (type == TokenType::EVAL) {return  EvalCommand{};}
     }
 
     return std::nullopt; // no valid command found
