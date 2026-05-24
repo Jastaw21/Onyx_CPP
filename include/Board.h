@@ -43,6 +43,7 @@ public:
     // zobrist hash
     ZobristHash getHash() const{ return zobrist_; }
     std::vector<BoardState>& History(){ return history_; }
+    void resetHistory();
 
     // make/unmake
     void makeMove(const Move& move_);

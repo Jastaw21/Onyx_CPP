@@ -68,7 +68,7 @@ private:
     void onQuit(const QuitCommand&);
     static void onIsReady(const IsReadyCommand&);
     void onPosition(const PositionCommand&);
-    static void onNewGame(const NewGameCommand&);
+    void onNewGame(const NewGameCommand&);
     void onPrintDebug(PrintDebugCommand printDebugCommand) const;
 
     Options options_{};
