@@ -40,6 +40,10 @@ void SearchController::PushOptions(Options& options) const{
     Evaluator::kingShieldPenalty = std::get<int>(kingShieldSet.value);
 }
 
+void SearchController::onNewGame(){
+    transpositionTable_.Reset();
+}
+
 
 void SearchController::onDepthComplete(const SearchInfo& info) const{
     const auto te = timer_.elapsedMs();

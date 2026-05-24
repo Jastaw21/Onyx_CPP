@@ -179,3 +179,8 @@ TTEntry* TranspositionTable::GetEntry(const ZobristHash key){
     if (key == table[index].key) return &table[index];
     return nullptr;
 }
+
+void TranspositionTable::Reset(){
+    table.clear();
+    stats = TTStats();
+}
