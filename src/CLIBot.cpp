@@ -62,3 +62,5 @@ void CliBot::onNewGame(const NewGameCommand&){
 void CliBot::onPrintDebug(PrintDebugCommand printDebugCommand) const{
     std::cout <<std::to_string( board_.getHash()) << " " << board_.getFen() << std::endl;
 }
+
+void CliBot::onEval(EvalCommand evalCommand){}

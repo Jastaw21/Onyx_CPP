@@ -37,6 +37,7 @@ public:
 
     void onSetOption(const SetOptionCommand& setOptionCommand);
 
+
     // clang-format off
     void HandleCommand(const Command& cmd){
 
@@ -49,7 +50,8 @@ public:
                [this](const PositionCommand& c)     { onPosition(c); },
                [this](const NewGameCommand& c)      { onNewGame(c); },
                [this](const PrintDebugCommand& c)   { onPrintDebug(c); },
-               [this](const SetOptionCommand& c)    { onSetOption(c); }
+               [this](const SetOptionCommand& c)    { onSetOption(c); },
+               [this](const EvalCommand& c)         { onEval(c);}
         }, cmd);
     }
 
@@ -70,6 +72,7 @@ private:
     void onPosition(const PositionCommand&);
     void onNewGame(const NewGameCommand&);
     void onPrintDebug(PrintDebugCommand printDebugCommand) const;
+    void onEval(EvalCommand evalCommand);
 
     Options options_{};
     void PushOptions(){ controller_.PushOptions(options_); }

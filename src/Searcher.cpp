@@ -10,7 +10,6 @@
 #include "MoveList.h"
 #include "Referee.h"
 #include "SearchController.h"
-#include "../cmake-build-release/_deps/googletest-src/googlemock/include/gmock/gmock-matchers.h"
 
 constexpr int maxExtensions = 10;
 
@@ -105,7 +104,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
 
     if (depthFromRoot > 0) {
         if (Referee::isDraw(board))
-            return SearchFlag{0, true};
+            return SearchFlag{-contempt, true};
     }
 
     if (depthRemaining == 0) {
@@ -223,13 +222,60 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     return SearchFlag{score, true};
 }
 
+bool Searcher::ProbeTT(Move& outTTMove, int& outTTScore, const int depthFromRoot, const int depthRemaining,
+                       const int alpha, const int beta){
+    const TTEntry* tt = controller_->transpositionTable().GetEntry(board.getHash());
+
+    // didn't find an entry - bail out
+    if (tt == nullptr)
+        return false;
+
+    outTTMove = tt->move;
+
+    // didn't search deep enough - bail out
+    if (tt->depth < depthRemaining)
+        return false;
+
+    const auto adjMateScore = DecodeMateScore(tt->score, depthFromRoot);
+
+    // check the score falls in the right bounds
+    bool canUse = false;
+    if (tt->bound == EXACT) canUse = true;
+    else if (tt->bound == UPPER_BOUND) canUse = adjMateScore <= alpha;
+    else if (tt->bound == LOWER_BOUND) canUse = adjMateScore >= beta;
+
+    // score not in bounds - bail out
+    if (!canUse)
+        return false;
+
+    board.makeMove(tt->move);
+    bool givesDraw = Referee::isDraw(board);
+    board.unmakeMove(tt->move);
+
+    if (givesDraw)
+        return false;
+
+    // otherwise - get a hash cutoff
+    statistics_.hashCutoffs++;
+    const bool isLegal = Referee::MoveIsLegal(board, tt->move);
+    if (depthFromRoot == 0 && isLegal && !tt->move.isNullMove())
+        bestMove = tt->move;
+    if (isLegal) {
+        outTTScore = adjMateScore;
+        return true;
+    }
+
+
+    return false;
+}
+
 SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRoot){
 
     if (statistics_.nodes % 2047 == 0 && token_.isStopped())
         return SearchFlag::Abort();
 
     if (Referee::isDraw(board))
-        return SearchFlag{0,true};
+        return SearchFlag{-contempt,true};
 
     const TTEntry* tt = controller_->transpositionTable().GetEntry(board.getHash());
     Move ttMove;
@@ -301,7 +347,7 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
 
     if (finalScore != 0 || !Referee::isDraw(board))
         controller_->transpositionTable().Store(board.getHash(), bestMoveInNode, EncodeMateScore(finalScore, depthFromRoot),
-                                            storingBound, 0, controller_->getAge());
+                                                storingBound, 0, controller_->getAge());
     return SearchFlag{finalScore, true};
 }
 
@@ -312,51 +358,4 @@ void Searcher::storeKillerMove(const int depth, const Move move){
         killerMoves[depth][1] = existingEntry;
         killerMoves[depth][0] = move;
     }
-}
-
-bool Searcher::ProbeTT(Move& outTTMove, int& outTTScore, const int depthFromRoot, const int depthRemaining,
-                       const int alpha, const int beta){
-    const TTEntry* tt = controller_->transpositionTable().GetEntry(board.getHash());
-
-    // didn't find an entry - bail out
-    if (tt == nullptr)
-        return false;
-
-    outTTMove = tt->move;
-
-    // didn't search deep enough - bail out
-    if (tt->depth < depthRemaining)
-        return false;
-
-    const auto adjMateScore = DecodeMateScore(tt->score, depthFromRoot);
-
-    // check the score falls in the right bounds
-    bool canUse = false;
-    if (tt->bound == EXACT) canUse = true;
-    else if (tt->bound == UPPER_BOUND) canUse = adjMateScore <= alpha;
-    else if (tt->bound == LOWER_BOUND) canUse = adjMateScore >= beta;
-
-    // score not in bounds - bail out
-    if (!canUse)
-        return false;
-
-    board.makeMove(tt->move);
-    bool givesDraw = Referee::isDraw(board);
-    board.unmakeMove(tt->move);
-
-    if (givesDraw)
-        return false;
-
-    // otherwise - get a hash cutoff
-    statistics_.hashCutoffs++;
-    const bool isLegal = Referee::MoveIsLegal(board, tt->move);
-    if (depthFromRoot == 0 && isLegal && !tt->move.isNullMove())
-        bestMove = tt->move;
-    if (isLegal) {
-        outTTScore = adjMateScore;
-        return true;
-    }
-
-
-    return false;
 }
