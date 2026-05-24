@@ -48,6 +48,8 @@ void Board::updateCastlingRights(const Piece pieceMoved, const RankAndFile moveF
 void Board::resetHistory(){
     history_.clear();
     history_.reserve(200);
+    halfMoves_ = 0;
+    fullMoves_ = 0;
 }
 
 void Board::makeMove(const Move& move_){

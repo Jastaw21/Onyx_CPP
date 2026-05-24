@@ -94,7 +94,7 @@ bool Referee::isRepetition(Board& board){
     const auto firstToSearch = historyEntries - 1;
     const auto hmCutoff = board.History().size() - board.halfMoves();
 
-    for (auto i = firstToSearch; i > hmCutoff; i--) {
+    for (auto i = firstToSearch; i >= hmCutoff; i--) {
         const auto previousHash = board.History()[i].hash;
         if (currentHash == previousHash) return true;
     }

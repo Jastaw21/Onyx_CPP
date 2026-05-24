@@ -4,6 +4,7 @@
 
 #include <gtest/gtest.h>
 
+#include "CLIBot.h"
 #include "Fen.h"
 #include "Referee.h"
 
@@ -44,4 +45,13 @@ TEST(RefereeTests,SquareAttacked){
 
     auto fishyKingMove = moveFromNotation("e8f8");
     EXPECT_FALSE(Referee::MoveIsLegal(board,fishyKingMove));
+}
+
+TEST(RefereeTests, Repetition){
+    auto bot = CliBot();
+    auto parser = UCIParser();
+
+    auto comm = parser.parse("position startpos moves b1c3 b8c6 c3b1 c6b8");
+    bot.HandleCommand(comm.value());
+    EXPECT_TRUE(Referee::isRepetition(bot.GetBoard()));
 }
