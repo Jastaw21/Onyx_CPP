@@ -92,9 +92,11 @@ bool Referee::isRepetition(Board& board){
     const auto currentHash = board.getHash();
     const auto historyEntries = board.History().size();
     const auto firstToSearch = historyEntries - 1;
-    const auto hmCutoff = board.History().size() - board.halfMoves();
+    const int hmCutoff = static_cast<int>(board.History().size()) - board.halfMoves();
+    const int startIndex = static_cast<int>(firstToSearch);
 
-    for (auto i = firstToSearch; i >= hmCutoff; i--) {
+
+    for (auto i = startIndex; i >= hmCutoff && i >= 0; i--) {
         const auto previousHash = board.History()[i].hash;
         if (currentHash == previousHash) return true;
     }
