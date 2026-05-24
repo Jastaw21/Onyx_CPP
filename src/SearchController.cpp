@@ -34,6 +34,10 @@ void SearchController::PushOptions(Options& options) const{
     worker_->GetSearcher().LMRThreshold = std::get<int>(lmrOption.value);
 }
 
+void SearchController::onNewGame(){
+    transpositionTable_.Reset();
+}
+
 
 void SearchController::onDepthComplete(const SearchInfo& info) const{
     auto te = timer_.elapsedMs();

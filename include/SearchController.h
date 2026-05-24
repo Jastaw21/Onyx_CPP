@@ -36,6 +36,7 @@ public:
     }
 
     void PushOptions(class Options& options) const;
+    void onNewGame();
 
 
 
