@@ -55,7 +55,9 @@ void CliBot::onPosition(const PositionCommand& command){
         board_.makeMove(copyMove);
     }
 }
-void CliBot::onNewGame(const NewGameCommand&){}
+void CliBot::onNewGame(const NewGameCommand&){
+    board_.resetHistory();
+}
 void CliBot::onPrintDebug(PrintDebugCommand printDebugCommand) const{
     std::cout <<std::to_string( board_.getHash()) << " " << board_.getFen() << std::endl;
 }

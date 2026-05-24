@@ -18,6 +18,7 @@ Board::Board(){
     boards_ = std::array<Bitboard, 12>{0ULL};
     FromFen(FenHelpers::StartPos);
     zobrist_ = Zobrist::fromBoard(this);
+    history_.reserve(200);
 }
 
 Board::Board(const Fen& fen){
@@ -42,6 +43,11 @@ void Board::updateCastlingRights(const Piece pieceMoved, const RankAndFile moveF
         if (moveFromSquare == 63) castlingRights_ &= ~FenHelpers::BlackKingside;
         if (moveFromSquare == 56) castlingRights_ &= ~FenHelpers::BlackQueenside;
     }
+}
+
+void Board::resetHistory(){
+    history_.clear();
+    history_.reserve(200);
 }
 
 void Board::makeMove(const Move& move_){
