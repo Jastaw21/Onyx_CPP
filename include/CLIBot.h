@@ -30,6 +30,15 @@ public:
                     .isValid = true
                 };
         options_.addOption(lmrThreshold);
+        Option contempt = {
+                    .name = "contempt",
+                    .value = 0,
+                    .min = -100,
+                    .max = 100,
+                    .defaultValue = 0,
+                    .isValid = true
+                };
+        options_.addOption(contempt);
     }
 
     Board& GetBoard(){ return board_; }

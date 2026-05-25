@@ -213,17 +213,18 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     } else score = alpha;
 
     // condition should not store draw scores
-    if (score != 0 || !Referee::isDraw(board)) {
-        controller_->transpositionTable()
-                .Store(board.getHash(), bestMoveInNode, EncodeMateScore(score, depthFromRoot), storingBound,
-                       depthRemaining, controller_->getAge());
-    }
-
+    controller_->transpositionTable()
+            .Store(board.getHash(), bestMoveInNode, EncodeMateScore(score, depthFromRoot), storingBound,
+                   depthRemaining, controller_->getAge());
     return SearchFlag{score, true};
 }
 
-bool Searcher::ProbeTT(Move& outTTMove, int& outTTScore, const int depthFromRoot, const int depthRemaining,
-                       const int alpha, const int beta){
+bool Searcher::ProbeTT(Move& outTTMove,
+                       int& outTTScore,
+                       const int depthFromRoot,
+                       const int depthRemaining,
+                       const int alpha,
+                       const int beta){
     const TTEntry* tt = controller_->transpositionTable().GetEntry(board.getHash());
 
     // didn't find an entry - bail out
@@ -246,13 +247,6 @@ bool Searcher::ProbeTT(Move& outTTMove, int& outTTScore, const int depthFromRoot
 
     // score not in bounds - bail out
     if (!canUse)
-        return false;
-
-    board.makeMove(tt->move);
-    bool givesDraw = Referee::isDraw(board);
-    board.unmakeMove(tt->move);
-
-    if (givesDraw)
         return false;
 
     // otherwise - get a hash cutoff
@@ -345,9 +339,8 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
         finalScore = -MATE + depthFromRoot;
     else finalScore = alpha;
 
-    if (finalScore != 0 || !Referee::isDraw(board))
-        controller_->transpositionTable().Store(board.getHash(), bestMoveInNode, EncodeMateScore(finalScore, depthFromRoot),
-                                                storingBound, 0, controller_->getAge());
+    controller_->transpositionTable().Store(board.getHash(), bestMoveInNode, EncodeMateScore(finalScore, depthFromRoot),
+                                            storingBound, 0, controller_->getAge());
     return SearchFlag{finalScore, true};
 }
 
