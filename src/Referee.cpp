@@ -9,21 +9,26 @@
 bool Referee::MoveIsLegal(Board& board, const Move move){
     const auto pieceMoved = board.pieceAtSquare(move.from());
 
-    if (!pieceMoved.exists()) return false;
-    if (pieceMoved.colour() != (board.whiteToMove() ? White : Black)) return false;
+    if (!pieceMoved.exists()) return false; // can't be legal - isn't a piece there
+    if (pieceMoved.colour() != (board.whiteToMove() ? White : Black)) return false; // moving out of turn
 
-    if (pieceMoved.type() == King) { return fullLegalityCheck(board, move); }
+    if (pieceMoved.type() == King) { return fullLegalityTest(board, move); }
 
     const bool isWhite = pieceMoved.isWhite();
     const Colour colourMoved = pieceMoved.colour();
-    if (const bool inCheck = IsInCheck(board, isWhite); !inCheck) {
-        const auto relevantKing = Piece(King, colourMoved);
-        const Bitboard kingBoard = board.getOccupancy(relevantKing);
-        const auto kingSquare = static_cast<Square>(std::countr_zero(kingBoard));
 
+    const auto relevantKing = Piece(King, colourMoved);
+    const Bitboard kingBoard = board.getOccupancy(relevantKing);
+    const auto kingSquare = static_cast<Square>(std::countr_zero(kingBoard));
+
+    // if we're not in check - only need to check for releasing pins
+    if (!SquareAttacked(kingSquare, board, !isWhite)) {
+
+        // if it DOESNT release a pin, it must be legal
         return !wouldReleasePin(move.from(), move.to(), kingSquare, isWhite, board);
     }
-    return fullLegalityCheck(board, move);
+    // otherwise - we were in check, need to do full test
+    return fullLegalityTest(board, move);
 }
 
 bool Referee::IsInCheck(const Board& board, const bool forWhite){
@@ -63,14 +68,14 @@ bool Referee::SquareAttacked(const Square square, const Board& board, const bool
         return true;
 
     // try kings
-    const Bitboard kingPlacements = board.getOccupancy(Piece(King, colour) );
+    const Bitboard kingPlacements = board.getOccupancy(Piece(King, colour));
     const auto kingAttacksFromHere =
             MagicBitboards::getMoves(Piece(King, White), square, occupancy);
     if (kingPlacements & kingAttacksFromHere)
         return true;
 
     const Bitboard queens = board.getOccupancy(Piece(Queen, colour));
-    const Bitboard diagonalThreats = queens | board.getOccupancy(Piece(Bishop, colour) );
+    const Bitboard diagonalThreats = queens | board.getOccupancy(Piece(Bishop, colour));
 
     // try diagonal threats
     if (diagonalThreats) {
@@ -96,7 +101,6 @@ bool Referee::isRepetition(Board& board){
     const int hmCutoff = static_cast<int>(board.History().size()) - board.halfMoves();
     const int startIndex = static_cast<int>(firstToSearch);
 
-
     for (auto i = startIndex; i >= hmCutoff && i >= 0; i--) {
         const auto previousHash = board.History()[i].hash;
         if (currentHash == previousHash) return true;
@@ -110,7 +114,7 @@ bool Referee::isCapture(const Board& board, const Move move){
     return board.pieceAtSquare(move.to()).exists();
 }
 
-bool Referee::fullLegalityCheck(Board& board, const Move move){
+bool Referee::fullLegalityTest(Board& board, const Move move){
     board.makeMove(move);
     const bool result = IsInCheck(board, !board.whiteToMove());
     board.unmakeMove(move);
@@ -125,7 +129,6 @@ bool Referee::wouldReleasePin(const Square pinnedFrom, const Square pinnedTo, co
 
     const Bitboard occupancyWithoutPotentialPinned = board.getOccupancy() & ~(1ULL << pinnedFrom);
 
-    const Colour colour = isWhite ? White : Black;
     const Colour theirColour = isWhite ? Black : White;
 
     const auto theirBishop = Piece(Bishop, theirColour);

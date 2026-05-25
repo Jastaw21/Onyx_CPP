@@ -20,7 +20,7 @@ public:
 
 private:
 
-    static bool fullLegalityCheck(Board& board, Move move);
+    static bool fullLegalityTest(Board& board, Move move);
     static bool wouldReleasePin(Square pinnedFrom, Square pinnedTo, Square kingSquare, bool isWhite, const Board& board);
 };
 
