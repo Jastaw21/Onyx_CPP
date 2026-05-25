@@ -96,15 +96,16 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     if (statistics_.nodes % 2047 == 0 && token_.isStopped())
         return SearchFlag::Abort();
 
+    // do draw state check first
+    if (depthFromRoot > 0) {
+        if (Referee::isDraw(board))
+            return SearchFlag{-contempt, true};
+    }
+
     // check to see if we can return early with a transposition table cutoff
     Move ttMove;
     if (int ttScore = 0; ProbeTT(ttMove, ttScore, depthFromRoot, depthRemaining, alpha, beta)) {
         return SearchFlag{ttScore, true};
-    }
-
-    if (depthFromRoot > 0) {
-        if (Referee::isDraw(board))
-            return SearchFlag{-contempt, true};
     }
 
     if (depthRemaining == 0) {
