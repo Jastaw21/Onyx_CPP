@@ -3,6 +3,8 @@
 //
 
 #include "../include/SearchController.h"
+
+#include "Evaluator.h"
 #include  "Options.h"
 
 SearchController::SearchController(Board& board) : board_(board), transpositionTable_(512), worker_(
@@ -30,20 +32,31 @@ void SearchController::start(const SearchOptions& options){
 }
 
 void SearchController::PushOptions(Options& options) const{
+    // applies the set options
+
     const auto& lmrOption = options["lmrThreshold"];
     worker_->GetSearcher().LMRThreshold = std::get<int>(lmrOption.value);
+
     const auto& contemptOption = options["contempt"];
     worker_->GetSearcher().contempt = std::get<int>(contemptOption.value);
+
+    const auto& deepLMR = options["deepLMR"];
+    worker_->GetSearcher().DeepLMR = std::get<int>(deepLMR.value);
+
+    const auto& kingShieldSet = options["kspen"];
+    Evaluator::kingShieldPenalty = std::get<int>(kingShieldSet.value);
+
+    const auto& ofPen = options["ofpen"];
+    Evaluator::openfilePenalty = std::get<int>(ofPen.value);
 }
 
-void SearchController::onNewGame(){
-    transpositionTable_.Reset();
-}
+
+void SearchController::onNewGame(){ transpositionTable_.Reset(); }
 
 
 void SearchController::onDepthComplete(const SearchInfo& info) const{
     const auto te = timer_.elapsedMs();
-    const auto elapsed = te < 1 ? 1 : te;
+    const auto elapsed = te < 1 ? 1 : te; // clamp to 1 to avoid div by 0
 
     std::cout
             << "info depth " << info.depth << " multipv 1 " << "score cp " << info.bestScore << " nodes "

@@ -55,14 +55,14 @@ public:
     static int DecodeMateScore(int score, int depthFromRoot);
     static int EncodeMateScore(int score, int depthFromRoot);
 
-    int LMRThreshold = 5;
+    int LMRThreshold = 4;
     int contempt = 0;
+    int DeepLMR = 8;
 
 private:
 
     Board& board;
     Statistics statistics_{};
-
 
     Move bestMove;
     int bestScore = 0;

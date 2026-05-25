@@ -219,6 +219,47 @@ void Board::addMoveFlags(Move& move){
 }
 
 Bitboard Board::getOccupancy() const{ return std::accumulate(boards_.begin(), boards_.end(), 0ULL, std::bit_or<>()); }
+
+int Board::countOnFile(const int file) const{
+    const uint64_t fm = fileMask(file);
+    return std::popcount(fm & getOccupancy());
+}
+
+
+int Board::countOnFile(const int file, const Piece piece) const{
+    const uint64_t fm = fileMask(file);
+    return std::popcount(fm & getOccupancy(piece));
+}
+
+int Board::countForwardsOnFile(const bool forwardsForWhite, const Square square, const bool countAllPieces = false) const{
+
+    const auto file = squareToRankAndFile(square).file;
+    const auto forwardSquare = forwardsForWhite ? square + 8 : square - 8;
+    const auto forwardsMask = forwardsForWhite ? ~((1ULL << forwardSquare) - 1) : (1ULL << square) - 1;
+    const uint64_t fm = fileMask(file);
+    const auto colourToCount = forwardsForWhite ? Black : White;
+    const auto occupancy = countAllPieces ? getOccupancy() : getOccupancy(colourToCount);
+    return std::popcount(fm & occupancy & forwardsMask);
+}
+
+int Board::countPawnsForwardOnFile(const bool forwardsForWhite, const Square square) const{
+
+    const auto file = squareToRankAndFile(square).file;
+    const auto forwardSquare = forwardsForWhite ? square + 8 : square - 8;
+    const auto forwardsMask = forwardsForWhite ? ~((1ULL << forwardSquare) - 1) : (1ULL << square) - 1;
+    const uint64_t fm = fileMask(file);
+    const auto occupancy = getOccupancy(Piece(Pawn,White)) | getOccupancy(Piece(Pawn,Black));
+    return std::popcount(fm & occupancy & forwardsMask);
+}
+
+int Board::countOnFile(const int file, const PieceType piece) const{
+    const uint64_t fm = fileMask(file);
+    const auto whiteOccupancy = getOccupancy(Piece(piece, White));
+    const auto blackOccupancy = getOccupancy(Piece(piece, Black));
+    const auto maskedOccupancy = (whiteOccupancy | blackOccupancy) & fm;
+    return std::popcount(maskedOccupancy);
+}
+
 void Board::loadFen(const Fen& fen){ FromFen(fen); }
 
 Fen Board::getFen() const{

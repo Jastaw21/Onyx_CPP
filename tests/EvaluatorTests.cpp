@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include "Evaluator.h"
+#include "MagicBitboards.h"
 
 TEST(EvaluatorTests, PieceSquareScore){
     auto rookOnA1 = Board("8/8/8/8/8/8/8/R7 w - - 0 1");
@@ -32,6 +33,35 @@ TEST(EvaluatorTests,MaterialAdvantage){
     auto blackAheadOnePawnAsWhite = Board("rnbqkbnr/pppppppp/8/8/8/8/PP1PPPPP/RNBQKBNR w KQkq - 0 1");
 
 
-    EXPECT_GT(Evaluator::Evaluate(blackAheadOnePawn),0);
-    EXPECT_LT(Evaluator::Evaluate(blackAheadOnePawnAsWhite),0);
+    EXPECT_GT(Evaluator::Evaluate(blackAheadOnePawn), 0);
+    EXPECT_LT(Evaluator::Evaluate(blackAheadOnePawnAsWhite), 0);
+}
+
+TEST(EvaluatorTests, KingShield) {
+    // equal 
+    auto board = Board();
+    MagicBitboards::init();
+    const auto allShieldsWhite = Evaluator::KingShieldScoreByColour(true, board);
+
+
+    // remove one white shielding pawn
+    board.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1");
+    const auto oneDownWhite = Evaluator::KingShieldScoreByColour(true, board);
+
+    EXPECT_LT(oneDownWhite, allShieldsWhite);
+
+    // remove the second
+    board.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPP2PPP/RNBQKBNR b KQkq - 0 1");
+    const auto twoDown = Evaluator::KingShieldScoreByColour(true, board);
+    EXPECT_LT(twoDown, oneDownWhite);
+
+    // remove the third
+    board.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPP3PP/RNBQKBNR b KQkq - 0 1");
+    const auto threeDown = Evaluator::KingShieldScoreByColour(true, board);
+    EXPECT_LT(threeDown, twoDown);
+
+    // remove a random, non-shielding pawn
+    board.loadFen("rnbqkbnr/pppppppp/8/8/8/8/1PP3PP/RNBQKBNR b KQkq - 0 1");
+    const auto randomPawn = Evaluator::KingShieldScoreByColour(true, board);
+    EXPECT_EQ(randomPawn, threeDown);
 }
