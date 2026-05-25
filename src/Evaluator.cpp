@@ -8,11 +8,11 @@
 
 
 std::array<Piece, 6> Evaluator::whitePieces = {
-            Piece(Pawn, White), Piece(Knight, White), Piece(King, White), Piece(Queen, White), Piece(Rook, White),
+            Piece(Pawn, White), Piece(King, White), Piece(Knight, White), Piece(Queen, White), Piece(Rook, White),
             Piece(Bishop, White)
         };
 std::array<Piece, 6> Evaluator::blackPieces = {
-            Piece(Pawn, Black), Piece(Knight, Black), Piece(King, Black), Piece(Queen, Black), Piece(Rook, Black),
+            Piece(Pawn, Black), Piece(King, Black), Piece(Knight, Black), Piece(Queen, Black), Piece(Rook, Black),
             Piece(Bishop, Black)
         };
 
@@ -88,19 +88,19 @@ Psq Evaluator::knightTables = Psq{
 };
 
 
+
 // clang-format on
 int Evaluator::Evaluate(const Board& board){
-    const int whiteCount = std::popcount(board.getOccupancy(White));
-    const int blackCount = std::popcount(board.getOccupancy(Black));
 
     int score = 0;
 
-    const auto whitePsqScore = EvaluateMaterial(board, true, 0);
-    const auto blackPsqScore = EvaluateMaterial(board, false, 0);
-    const auto w_kssScore = KingSafetyScore(true, board);
-    const auto b_kssScore = KingSafetyScore(false, board);
 
-    score += whiteCount - blackCount;
+    Material outMaterial;
+    const auto whitePsqScore = EvaluateMaterial(board, true, 0, outMaterial);
+    const auto blackPsqScore = EvaluateMaterial(board, false, 0, outMaterial);
+    const auto w_kssScore = KingSafetyScore(true, board, outMaterial);
+    const auto b_kssScore = KingSafetyScore(false, board, outMaterial);
+
 
     score += whitePsqScore.materialScore - blackPsqScore.materialScore;
     score += whitePsqScore.pieceSquareScore - blackPsqScore.pieceSquareScore;
@@ -110,17 +110,32 @@ int Evaluator::Evaluate(const Board& board){
     return score * (board.whiteToMove() ? 1 : -1);
 }
 
-MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite, const float endGameRatio){
+MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite, const float endGameRatio, Material& outMaterial){
     const auto& pieces = forWhite ? whitePieces : blackPieces;
     MaterialEval eval{0, 0};
 
+    // we'll use this to check the pawns and kings to populate the eval, as they're the first two in the lists
+    int pieceIdx = 0;
     for (auto const& piece: pieces) {
         auto placements = board.getOccupancy(piece);
+
+        // we'll use these placements later in the eval function, may as well cache them to avoid loads of calls to getOccupancy
+        if (pieceIdx == 0) {
+            if (forWhite) outMaterial.whitePawns = placements;
+            else outMaterial.blackPawns = placements;
+        }
+        else if (pieceIdx == 1) {
+            if (forWhite) outMaterial.whiteKing = placements;
+            else outMaterial.blackKing = placements;
+        }
+
+        // get the material score
         const auto count = std::popcount(placements);
         const auto pieceType = piece.type();
         eval.materialScore += count * pieceValues[pieceType];
 
-        const auto& squareScores = getTableByPieceType(pieceType);
+        // now the piece square score
+        const auto& squareScores = getTableByPieceType(pieceType); // get the table once for each piece
         while (placements) {
             const auto thisSquare = static_cast<Square>(std::countr_zero(placements));
             const auto index = forWhite ? thisSquare ^ 56 : thisSquare;
@@ -134,6 +149,9 @@ MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite
 
             placements &= placements - 1;
         }
+
+
+        pieceIdx++;
     }
 
     return eval;
@@ -182,9 +200,9 @@ Psq& Evaluator::getTableByPieceType(const PieceType type){
 
 // clang-format on
 
-int Evaluator::KingSafetyScore(const bool forWhite, const Board& board){
+int Evaluator::KingSafetyScore(const bool forWhite, const Board& board, const Material& material){
 
-    return KingOpenFileScore(forWhite, board);
+    return KingOpenFileScore(forWhite, board, material);
 }
 
 int Evaluator::KingShieldScoreByColour(const bool forWhite, const Board& board){
@@ -202,13 +220,13 @@ int Evaluator::KingShieldScoreByColour(const bool forWhite, const Board& board){
     return (numPossShields - numActShields) * -kingShieldPenalty;
 }
 
-int Evaluator::KingOpenFileScore(const bool forWhite, const Board& board){
-    const auto piece = Piece(King, forWhite ? White : Black);
-    const auto location = board.getOccupancy(piece);
+int Evaluator::KingOpenFileScore(const bool forWhite, const Board& board, const Material& material){
+
+    const auto location =  forWhite ? material.whiteKing : material.blackKing;
     if (location == 0ULL) return 0; // No king
     const auto asSquare = static_cast<Square>(std::countr_zero(location));
 
-    const auto piecesAheadOnFile = board.countPawnsForwardOnFile(forWhite, asSquare);
+    const auto piecesAheadOnFile = countOccupantsForward(forWhite, asSquare, material.blackPawns | material.whitePawns);
     if (piecesAheadOnFile == 0)
         return -openfilePenalty; // penalty for an open file
     return 0;
