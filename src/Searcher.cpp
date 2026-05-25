@@ -96,15 +96,16 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     if (statistics_.nodes % 2047 == 0 && token_.isStopped())
         return SearchFlag::Abort();
 
+    // do draw state-check first
+    if (depthFromRoot > 0) {
+        if (Referee::isDraw(board))
+            return SearchFlag{-contempt, true};
+    }
+
     // check to see if we can return early with a transposition table cutoff
     Move ttMove;
     if (int ttScore = 0; ProbeTT(ttMove, ttScore, depthFromRoot, depthRemaining, alpha, beta)) {
         return SearchFlag{ttScore, true};
-    }
-
-    if (depthFromRoot > 0) {
-        if (Referee::isDraw(board))
-            return SearchFlag{-contempt, true};
     }
 
     if (depthRemaining == 0) {
@@ -213,17 +214,18 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     } else score = alpha;
 
     // condition should not store draw scores
-    if (score != 0 || !Referee::isDraw(board)) {
-        controller_->transpositionTable()
-                .Store(board.getHash(), bestMoveInNode, EncodeMateScore(score, depthFromRoot), storingBound,
-                       depthRemaining, controller_->getAge());
-    }
-
+    controller_->transpositionTable()
+            .Store(board.getHash(), bestMoveInNode, EncodeMateScore(score, depthFromRoot), storingBound,
+                   depthRemaining, controller_->getAge());
     return SearchFlag{score, true};
 }
 
-bool Searcher::ProbeTT(Move& outTTMove, int& outTTScore, const int depthFromRoot, const int depthRemaining,
-                       const int alpha, const int beta){
+bool Searcher::ProbeTT(Move& outTTMove,
+                       int& outTTScore,
+                       const int depthFromRoot,
+                       const int depthRemaining,
+                       const int alpha,
+                       const int beta){
     const TTEntry* tt = controller_->transpositionTable().GetEntry(board.getHash());
 
     // didn't find an entry - bail out
@@ -248,17 +250,20 @@ bool Searcher::ProbeTT(Move& outTTMove, int& outTTScore, const int depthFromRoot
     if (!canUse)
         return false;
 
-    board.makeMove(tt->move);
-    bool givesDraw = Referee::isDraw(board);
-    board.unmakeMove(tt->move);
-
+    auto givesDraw = false;
+    const auto ttMoveNotNull = !tt->move.isNullMove();
+    if (ttMoveNotNull) {
+        board.makeMove(tt->move);
+        givesDraw = Referee::isDraw(board);
+        board.unmakeMove(tt->move);
+    }
     if (givesDraw)
         return false;
 
     // otherwise - get a hash cutoff
     statistics_.hashCutoffs++;
     const bool isLegal = Referee::MoveIsLegal(board, tt->move);
-    if (depthFromRoot == 0 && isLegal && !tt->move.isNullMove())
+    if (depthFromRoot == 0 && isLegal && ttMoveNotNull)
         bestMove = tt->move;
     if (isLegal) {
         outTTScore = adjMateScore;
@@ -345,9 +350,8 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
         finalScore = -MATE + depthFromRoot;
     else finalScore = alpha;
 
-    if (finalScore != 0 || !Referee::isDraw(board))
-        controller_->transpositionTable().Store(board.getHash(), bestMoveInNode, EncodeMateScore(finalScore, depthFromRoot),
-                                                storingBound, 0, controller_->getAge());
+    controller_->transpositionTable().Store(board.getHash(), bestMoveInNode, EncodeMateScore(finalScore, depthFromRoot),
+                                            storingBound, 0, controller_->getAge());
     return SearchFlag{finalScore, true};
 }
 

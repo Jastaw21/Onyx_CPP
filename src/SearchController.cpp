@@ -32,6 +32,8 @@ void SearchController::start(const SearchOptions& options){
 void SearchController::PushOptions(Options& options) const{
     const auto& lmrOption = options["lmrThreshold"];
     worker_->GetSearcher().LMRThreshold = std::get<int>(lmrOption.value);
+    const auto& contemptOption = options["contempt"];
+    worker_->GetSearcher().contempt = std::get<int>(contemptOption.value);
 }
 
 void SearchController::onNewGame(){
@@ -40,7 +42,7 @@ void SearchController::onNewGame(){
 
 
 void SearchController::onDepthComplete(const SearchInfo& info) const{
-    auto te = timer_.elapsedMs();
+    const auto te = timer_.elapsedMs();
     const auto elapsed = te < 1 ? 1 : te;
 
     std::cout
