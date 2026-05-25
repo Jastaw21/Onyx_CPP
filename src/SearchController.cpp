@@ -42,7 +42,7 @@ void SearchController::onNewGame(){
 
 
 void SearchController::onDepthComplete(const SearchInfo& info) const{
-    auto te = timer_.elapsedMs();
+    const auto te = timer_.elapsedMs();
     const auto elapsed = te < 1 ? 1 : te;
 
     std::cout
