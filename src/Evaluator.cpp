@@ -176,13 +176,15 @@ Psq& Evaluator::getTableByPieceType(const PieceType type){
 		case Queen      : return  queenTables;
 		case King       : return  kingTables;
 		case Bishop     : return  bishopTables;
-	}
+        default: ;
+    }
 }
 
 // clang-format on
 
 int Evaluator::KingSafetyScore(const bool forWhite, const Board& board){
-    return KingOpenFileScore(forWhite, board) + KingOpenFileScore(forWhite, board);
+
+    return KingOpenFileScore(forWhite, board);
 }
 
 int Evaluator::KingShieldScoreByColour(const bool forWhite, const Board& board){
