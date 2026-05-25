@@ -96,7 +96,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     if (statistics_.nodes % 2047 == 0 && token_.isStopped())
         return SearchFlag::Abort();
 
-    // do draw state check first
+    // do draw state-check first
     if (depthFromRoot > 0) {
         if (Referee::isDraw(board))
             return SearchFlag{-contempt, true};
@@ -250,10 +250,20 @@ bool Searcher::ProbeTT(Move& outTTMove,
     if (!canUse)
         return false;
 
+    auto givesDraw = false;
+    const auto ttMoveNotNull = !tt->move.isNullMove();
+    if (ttMoveNotNull) {
+        board.makeMove(tt->move);
+        givesDraw = Referee::isDraw(board);
+        board.unmakeMove(tt->move);
+    }
+    if (givesDraw)
+        return false;
+
     // otherwise - get a hash cutoff
     statistics_.hashCutoffs++;
     const bool isLegal = Referee::MoveIsLegal(board, tt->move);
-    if (depthFromRoot == 0 && isLegal && !tt->move.isNullMove())
+    if (depthFromRoot == 0 && isLegal && ttMoveNotNull)
         bestMove = tt->move;
     if (isLegal) {
         outTTScore = adjMateScore;
