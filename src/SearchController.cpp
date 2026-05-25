@@ -33,6 +33,13 @@ void SearchController::start(const SearchOptions& options){
 
 void SearchController::PushOptions(Options& options) const{
     // applies the set options
+
+    const auto& lmrOption = options["lmrThreshold"];
+    worker_->GetSearcher().LMRThreshold = std::get<int>(lmrOption.value);
+
+    const auto& contemptOption = options["contempt"];
+    worker_->GetSearcher().contempt = std::get<int>(contemptOption.value);
+
     const auto& deepLMR = options["deepLMR"];
     worker_->GetSearcher().DeepLMR = std::get<int>(deepLMR.value);
 
@@ -42,6 +49,7 @@ void SearchController::PushOptions(Options& options) const{
     const auto& ofPen = options["ofpen"];
     Evaluator::openfilePenalty = std::get<int>(ofPen.value);
 }
+
 
 void SearchController::onNewGame(){ transpositionTable_.Reset(); }
 

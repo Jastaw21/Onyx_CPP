@@ -136,7 +136,7 @@ bool Referee::wouldReleasePin(const Square pinnedFrom, const Square pinnedTo, co
     if (const Bitboard diagonalThreats = diagonalAttackers & diagonalAttacks) {
         const auto asSquare = static_cast<Square>(std::countr_zero(diagonalThreats));
 
-        // if we're moving on that ray then it's fine, if not illegal
+        // if we're moving on that ray, then it's fine, if not illegal
         const auto diagRay = rayBetween(asSquare, kingSquare);
         return (diagRay & 1ULL << pinnedTo) == 0;
     }
@@ -149,7 +149,7 @@ bool Referee::wouldReleasePin(const Square pinnedFrom, const Square pinnedTo, co
     if (const Bitboard straightThreats = straightAttackers & straightAttacks) {
         const auto asSquare = static_cast<Square>(std::countr_zero(straightThreats));
 
-        // if we're moving on that ray then it's fine, if not illegal
+        // if we're moving on that ray, then it's fine, if not illegal
         const auto diagRay = rayBetween(asSquare, kingSquare);
         return (diagRay & 1ULL << pinnedTo) == 0;
     }

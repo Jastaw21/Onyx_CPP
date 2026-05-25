@@ -56,6 +56,7 @@ public:
     static int EncodeMateScore(int score, int depthFromRoot);
 
     int LMRThreshold = 4;
+    int contempt = 0;
     int DeepLMR = 8;
 
 private:
