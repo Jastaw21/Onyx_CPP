@@ -146,7 +146,8 @@ void MoveGenerator::addCastlingMoves(const Board& board, MoveList& moveSpan, con
         }
 
         // clear, and no squares attacked - make a castling move
-        if (ksNotAttacked) { const uint8_t flags = Castling;
+        if (ksNotAttacked) {
+            constexpr uint8_t flags = Castling;
             const auto castlingMove = Move(kingSquare, targetSquare, flags);
             moveSpan.add(castlingMove);
         }
@@ -162,7 +163,8 @@ void MoveGenerator::addCastlingMoves(const Board& board, MoveList& moveSpan, con
         }
 
         // clear, and no squares attacked - make a castling move
-        if (qsNotAttacked) { const uint8_t flags = Castling;
+        if (qsNotAttacked) {
+            constexpr uint8_t flags = Castling;
             const auto castlingMove = Move(kingSquare, targetSquare, flags);
             moveSpan.add(castlingMove);
         }

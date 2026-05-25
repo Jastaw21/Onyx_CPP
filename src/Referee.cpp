@@ -2,9 +2,9 @@
 // Created by jacks on 07/02/2026.
 //
 
-#include "../include/Referee.h"
+#include "Referee.h"
 
-#include "../include/MagicBitboards.h"
+#include "MagicBitboards.h"
 
 bool Referee::MoveIsLegal(Board& board, const Move move){
     const auto pieceMoved = board.pieceAtSquare(move.from());
@@ -15,8 +15,9 @@ bool Referee::MoveIsLegal(Board& board, const Move move){
     if (pieceMoved.type() == King) { return fullLegalityCheck(board, move); }
 
     const bool isWhite = pieceMoved.isWhite();
+    const Colour colourMoved = pieceMoved.colour();
     if (const bool inCheck = IsInCheck(board, isWhite); !inCheck) {
-        const auto relevantKing = isWhite ? Piece(King, White) : Piece(King, Black);
+        const auto relevantKing = Piece(King, colourMoved);
         const Bitboard kingBoard = board.getOccupancy(relevantKing);
         const auto kingSquare = static_cast<Square>(std::countr_zero(kingBoard));
 
@@ -35,9 +36,10 @@ bool Referee::IsInCheck(const Board& board, const bool forWhite){
 
 bool Referee::SquareAttacked(const Square square, const Board& board, const bool byWhite){
     const auto [rank, file] = squareToRankAndFile(square);
+    const Colour colour = byWhite ? White : Black;
 
     // see if pawns attack this square
-    const auto relevantPawn = byWhite ? Piece(Pawn, White) : Piece(Pawn, Black);
+    const auto relevantPawn = Piece(Pawn, colour);
     const Bitboard pawnPositions = board.getOccupancy(relevantPawn);
 
     // can be attacked from the left
@@ -53,7 +55,7 @@ bool Referee::SquareAttacked(const Square square, const Board& board, const bool
     }
 
     // try knights
-    const Bitboard knightPlacements = board.getOccupancy(byWhite ? Piece(Knight, White) : Piece(Knight, Black));
+    const Bitboard knightPlacements = board.getOccupancy(Piece(Knight, colour));
     const Bitboard occupancy = board.getOccupancy();
     const auto KnightsAttacksFromHere =
             MagicBitboards::getMoves(Piece(Knight, White), square, occupancy);
@@ -61,15 +63,14 @@ bool Referee::SquareAttacked(const Square square, const Board& board, const bool
         return true;
 
     // try kings
-    const Bitboard kingPlacements = board.getOccupancy(byWhite ? Piece(King, White) : Piece(King, Black));
+    const Bitboard kingPlacements = board.getOccupancy(Piece(King, colour) );
     const auto kingAttacksFromHere =
             MagicBitboards::getMoves(Piece(King, White), square, occupancy);
     if (kingPlacements & kingAttacksFromHere)
         return true;
 
-    const Bitboard queens = board.getOccupancy(byWhite ? Piece(Queen, White) : Piece(Queen, Black));
-    const Bitboard diagonalThreats = queens | board.getOccupancy(
-                                         byWhite ? Piece(Bishop, White) : Piece(Bishop, Black));
+    const Bitboard queens = board.getOccupancy(Piece(Queen, colour));
+    const Bitboard diagonalThreats = queens | board.getOccupancy(Piece(Bishop, colour) );
 
     // try diagonal threats
     if (diagonalThreats) {
@@ -79,7 +80,7 @@ bool Referee::SquareAttacked(const Square square, const Board& board, const bool
             return true;
     }
 
-    if (const Bitboard straightThreats = queens | board.getOccupancy(byWhite ? Piece(Rook, White) : Piece(Rook, Black))) {
+    if (const Bitboard straightThreats = queens | board.getOccupancy(Piece(Rook, colour))) {
         const auto straightAttacks = MagicBitboards::getMoves(Piece(Rook, White), square, occupancy);
         if (straightAttacks & straightThreats)
             return true;
@@ -124,8 +125,11 @@ bool Referee::wouldReleasePin(const Square pinnedFrom, const Square pinnedTo, co
 
     const Bitboard occupancyWithoutPotentialPinned = board.getOccupancy() & ~(1ULL << pinnedFrom);
 
-    const auto theirBishop = Piece(Bishop, isWhite ? Black : White);
-    const auto theirQueen = Piece(Queen, isWhite ? Black : White);
+    const Colour colour = isWhite ? White : Black;
+    const Colour theirColour = isWhite ? Black : White;
+
+    const auto theirBishop = Piece(Bishop, theirColour);
+    const auto theirQueen = Piece(Queen, theirColour);
 
     const Bitboard theirQueenPosition = board.getOccupancy(theirQueen);
     const Bitboard diagonalAttackers = board.getOccupancy(theirBishop) | theirQueenPosition;
@@ -141,7 +145,7 @@ bool Referee::wouldReleasePin(const Square pinnedFrom, const Square pinnedTo, co
         return (diagRay & 1ULL << pinnedTo) == 0;
     }
 
-    const auto relevantRook = Piece(Rook, isWhite ? Black : White);
+    const auto relevantRook = Piece(Rook, theirColour);
     const Bitboard straightAttackers = board.getOccupancy(relevantRook) | theirQueenPosition;
     const Bitboard straightAttacks = MagicBitboards::getMoves(Piece(Rook, White), kingSquare,
                                                               occupancyWithoutPotentialPinned);

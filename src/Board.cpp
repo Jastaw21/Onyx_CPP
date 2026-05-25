@@ -34,7 +34,9 @@ void Board::makeMove(const Move& move_){
     const Square moveToSquare = move_.to();
 
     const auto pieceMoved = board_[moveFromSquare];
+    const PieceType typeMoved = pieceMoved.type();
     const bool isWhite = pieceMoved.colour() == White;
+    const Colour pieceColour = pieceMoved.colour();
 
     const uint8_t flags = move_.flags();
 
@@ -62,8 +64,8 @@ void Board::makeMove(const Move& move_){
     Square capturedOn = -1;
 
     // double push - creating an exposed en passant target square
-    if (pieceMoved.type() == Pawn && std::abs(moveFromSquare - moveToSquare) == 16) {
-        const auto targetEPRank = pieceMoved.isWhite() ? 2 : 5;
+    if (typeMoved == Pawn && std::abs(moveFromSquare - moveToSquare) == 16) {
+        const auto targetEPRank = isWhite ? 2 : 5;
 
         enPassantSquare_ = rankAndFileToSquare(targetEPRank, moveFrom.file);
     }
@@ -94,7 +96,7 @@ void Board::makeMove(const Move& move_){
     // if is ep we have to force it to work right
 
     if (flags & EnPassant) {
-        capturedOn = lastEPSquare + (pieceMoved.isWhite() ? -8 : 8);
+        capturedOn = lastEPSquare + (isWhite ? -8 : 8);
         setOff(pieceCaptured, capturedOn);
     }
 
@@ -102,14 +104,14 @@ void Board::makeMove(const Move& move_){
     if (flags & Castling) {
         const auto rookTargetFile = moveTo.file == 6 ? 5 : 3; // always moves one inside
         const auto rookOriginFile = moveTo.file == 6 ? 7 : 0;
-        const Piece movedRook = isWhite ? Piece(Rook, White) : Piece(Rook, Black);
+        const auto movedRook =  Piece(Rook, pieceColour);
         setOff(movedRook, rankAndFileToSquare(moveFrom.rank, rookOriginFile));
         setOn(movedRook, rankAndFileToSquare(moveFrom.rank, rookTargetFile));
     }
 
     if (move_.isPromotion()) {
         setOff(pieceMoved, moveFromSquare);
-        const auto promotedTo = Piece(move_.promotionType(), isWhite ? White : Black);
+        const auto promotedTo = Piece(move_.promotionType(), pieceColour);
         setOn(promotedTo, moveToSquare);
     } else {
         // move the moving piece
@@ -126,16 +128,15 @@ void Board::makeMove(const Move& move_){
     whiteToMove_ = !whiteToMove_;
 
     // non-reversible moves reset the half move counter
-    if (pieceCaptured.exists() || pieceMoved.type() == Pawn)
+    if (typeMoved == Pawn || pieceCaptured.exists())
         halfMoves_ = 0;
     else
         halfMoves_++;
 
-    // if black last moved (now white), we get another full move
+    // if black last moved (now white as we have already flipped), we get another full move
     if (whiteToMove_)
         fullMoves_++;
 }
-
 
 void Board::unmakeMove(const Move& move){
     // restore history
@@ -153,10 +154,11 @@ void Board::unmakeMove(const Move& move){
 
     // send the piece back
     const auto movedPiece = board_[to];
+    const Colour movedColour = movedPiece.colour();
 
     if (move.isPromotion()) {
-        const auto promotedPiece = Piece(move.promotionType(), movedPiece.isWhite() ? White : Black);
-        const auto pawnToRestore = Piece(Piece(Pawn, movedPiece.isWhite() ? White : Black));
+        const auto promotedPiece = Piece(move.promotionType(), movedColour);
+        const auto pawnToRestore = Piece(Piece(Pawn, movedColour));
         setOff(promotedPiece, to);
         setOn(pawnToRestore, from);
     } else { movePiece(movedPiece, to, from); }
@@ -175,7 +177,7 @@ void Board::unmakeMove(const Move& move){
         const auto moveFrom = squareToRankAndFile(from);
         const auto rookTargetFile = moveTo.file == 6 ? 5 : 3; // always moves one inside
         const auto rookOriginFile = moveTo.file == 6 ? 7 : 0;
-        const Piece movedRook = movedPiece.isWhite() ? Piece(Rook, White) : Piece(Rook, Black);
+        const Piece movedRook = Piece(Rook, movedColour);
         setOn(movedRook, rankAndFileToSquare(moveFrom.rank, rookOriginFile));
         setOff(movedRook, rankAndFileToSquare(moveFrom.rank, rookTargetFile));
     }
@@ -190,8 +192,8 @@ void Board::addMoveFlags(Move& move){
     if (pieceMoved.type() == Pawn && move.to() == enPassantSquare_) { move.addFlag(EnPassant); }
     if (pieceMoved.type() == King) {
         const RankAndFile rafFrom = squareToRankAndFile(move.from());
-        const RankAndFile rafTom = squareToRankAndFile(move.to());
-        if (std::abs(rafFrom.file - rafTom.file) > 1)
+        const RankAndFile rafTo = squareToRankAndFile(move.to());
+        if (std::abs(rafFrom.file - rafTo.file) > 1)
             move.addFlag(Castling);
     }
 }
