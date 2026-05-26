@@ -13,9 +13,10 @@ MoveList::MoveList(const Board& board, const bool capturesOnly){
 }
 
 void MoveList::sort(Board& board, const Move& ttMove, const Move& killer1, const Move& killer2){
+	const bool ttMoveValid = !ttMove.isNullMove() && Referee::MoveIsLegal(board, ttMove);
     std::ranges::stable_sort(*this, [&](const Move& a, const Move& b) {
         // tt move wins first
-        if (!ttMove.isNullMove() && Referee::MoveIsLegal(board, ttMove)) {
+        if (ttMoveValid) {
             if (a == ttMove) return true;
             if (b == ttMove) return false;
         }
