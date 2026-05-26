@@ -43,6 +43,7 @@ public:
 private:
 
     static int moveScore(const Move& move, const Board& board, const Move& killer1, const Move& killer2);
+    static int moveScore(const Move& move, const Board& board);
 };
 
 
