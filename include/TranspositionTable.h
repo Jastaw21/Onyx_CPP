@@ -66,7 +66,7 @@ public:
     void Store(const TTEntry& entry);
     TTEntry Lookup(ZobristHash key) const;
     TTEval Lookup(ZobristHash key, int depthRemaining, int alpha, int beta);
-    TTEntry* GetEntry(ZobristHash key);
+    const TTEntry* GetEntry(ZobristHash key) const;
     void Log() const{stats.PrintStats();}
     void Reset();
 

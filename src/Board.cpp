@@ -7,12 +7,6 @@
 #include "utils.h"
 #include "Zobrist.h"
 
-void Board::setOff(const Piece piece, const Square square){
-    // this will currently overwrite the piece that moved there
-    board_[square] = Piece();
-    boards_[piece.index()] &= ~(1ULL << square);
-}
-
 Board::Board(){
     board_ = std::array<Piece, 64>{Piece()};
     boards_ = std::array<Bitboard, 12>{0ULL};
@@ -28,23 +22,6 @@ Board::Board(const Fen& fen){
     zobrist_ = Zobrist::fromBoard(this);
 }
 
-void Board::updateCastlingRights(const Piece pieceMoved, const RankAndFile moveFrom){
-    // moving the king loses that side's castling rights
-    if (pieceMoved.type() == King) {
-        if (pieceMoved.colour() == White)
-            castlingRights_ &= ~(FenHelpers::WhiteKingside | FenHelpers::WhiteQueenside);
-        else { castlingRights_ &= ~(FenHelpers::BlackKingside | FenHelpers::BlackQueenside); }
-    }
-    // moving a rook also loses castling rights - only if from original square
-    if (pieceMoved.type() == Rook) {
-        const auto moveFromSquare = rankAndFileToSquare(moveFrom.rank, moveFrom.file);
-        if (moveFromSquare == 7) castlingRights_ &= ~FenHelpers::WhiteKingside;
-        if (moveFromSquare == 0) castlingRights_ &= ~FenHelpers::WhiteQueenside;
-        if (moveFromSquare == 63) castlingRights_ &= ~FenHelpers::BlackKingside;
-        if (moveFromSquare == 56) castlingRights_ &= ~FenHelpers::BlackQueenside;
-    }
-}
-
 void Board::resetHistory(){
     history_.clear();
     halfMoves_ = 0;
@@ -57,7 +34,9 @@ void Board::makeMove(const Move& move_){
     const Square moveToSquare = move_.to();
 
     const auto pieceMoved = board_[moveFromSquare];
+    const PieceType typeMoved = pieceMoved.type();
     const bool isWhite = pieceMoved.colour() == White;
+    const Colour pieceColour = pieceMoved.colour();
 
     const uint8_t flags = move_.flags();
 
@@ -85,8 +64,8 @@ void Board::makeMove(const Move& move_){
     Square capturedOn = -1;
 
     // double push - creating an exposed en passant target square
-    if (pieceMoved.type() == Pawn && std::abs(moveFromSquare - moveToSquare) == 16) {
-        const auto targetEPRank = pieceMoved.isWhite() ? 2 : 5;
+    if (typeMoved == Pawn && std::abs(moveFromSquare - moveToSquare) == 16) {
+        const auto targetEPRank = isWhite ? 2 : 5;
 
         enPassantSquare_ = rankAndFileToSquare(targetEPRank, moveFrom.file);
     }
@@ -117,7 +96,7 @@ void Board::makeMove(const Move& move_){
     // if is ep we have to force it to work right
 
     if (flags & EnPassant) {
-        capturedOn = lastEPSquare + (pieceMoved.isWhite() ? -8 : 8);
+        capturedOn = lastEPSquare + (isWhite ? -8 : 8);
         setOff(pieceCaptured, capturedOn);
     }
 
@@ -125,14 +104,14 @@ void Board::makeMove(const Move& move_){
     if (flags & Castling) {
         const auto rookTargetFile = moveTo.file == 6 ? 5 : 3; // always moves one inside
         const auto rookOriginFile = moveTo.file == 6 ? 7 : 0;
-        const Piece movedRook = isWhite ? Piece(Rook, White) : Piece(Rook, Black);
+        const auto movedRook =  Piece(Rook, pieceColour);
         setOff(movedRook, rankAndFileToSquare(moveFrom.rank, rookOriginFile));
         setOn(movedRook, rankAndFileToSquare(moveFrom.rank, rookTargetFile));
     }
 
     if (move_.isPromotion()) {
         setOff(pieceMoved, moveFromSquare);
-        const auto promotedTo = Piece(move_.promotionType(), isWhite ? White : Black);
+        const auto promotedTo = Piece(move_.promotionType(), pieceColour);
         setOn(promotedTo, moveToSquare);
     } else {
         // move the moving piece
@@ -149,12 +128,12 @@ void Board::makeMove(const Move& move_){
     whiteToMove_ = !whiteToMove_;
 
     // non-reversible moves reset the half move counter
-    if (pieceCaptured.exists() || pieceMoved.type() == Pawn)
+    if (typeMoved == Pawn || pieceCaptured.exists())
         halfMoves_ = 0;
     else
         halfMoves_++;
 
-    // if black last moved (now white), we get another full move
+    // if black last moved (now white as we have already flipped), we get another full move
     if (whiteToMove_)
         fullMoves_++;
 }
@@ -175,10 +154,11 @@ void Board::unmakeMove(const Move& move){
 
     // send the piece back
     const auto movedPiece = board_[to];
+    const Colour movedColour = movedPiece.colour();
 
     if (move.isPromotion()) {
-        const auto promotedPiece = Piece(move.promotionType(), movedPiece.isWhite() ? White : Black);
-        const auto pawnToRestore = Piece(Piece(Pawn, movedPiece.isWhite() ? White : Black));
+        const auto promotedPiece = Piece(move.promotionType(), movedColour);
+        const auto pawnToRestore = Piece(Piece(Pawn, movedColour));
         setOff(promotedPiece, to);
         setOn(pawnToRestore, from);
     } else { movePiece(movedPiece, to, from); }
@@ -197,7 +177,7 @@ void Board::unmakeMove(const Move& move){
         const auto moveFrom = squareToRankAndFile(from);
         const auto rookTargetFile = moveTo.file == 6 ? 5 : 3; // always moves one inside
         const auto rookOriginFile = moveTo.file == 6 ? 7 : 0;
-        const Piece movedRook = movedPiece.isWhite() ? Piece(Rook, White) : Piece(Rook, Black);
+        const Piece movedRook = Piece(Rook, movedColour);
         setOn(movedRook, rankAndFileToSquare(moveFrom.rank, rookOriginFile));
         setOff(movedRook, rankAndFileToSquare(moveFrom.rank, rookTargetFile));
     }
@@ -212,53 +192,13 @@ void Board::addMoveFlags(Move& move){
     if (pieceMoved.type() == Pawn && move.to() == enPassantSquare_) { move.addFlag(EnPassant); }
     if (pieceMoved.type() == King) {
         const RankAndFile rafFrom = squareToRankAndFile(move.from());
-        const RankAndFile rafTom = squareToRankAndFile(move.to());
-        if (std::abs(rafFrom.file - rafTom.file) > 1)
+        const RankAndFile rafTo = squareToRankAndFile(move.to());
+        if (std::abs(rafFrom.file - rafTo.file) > 1)
             move.addFlag(Castling);
     }
 }
 
 Bitboard Board::getOccupancy() const{ return std::accumulate(boards_.begin(), boards_.end(), 0ULL, std::bit_or<>()); }
-
-int Board::countOnFile(const int file) const{
-    const uint64_t fm = fileMask(file);
-    return std::popcount(fm & getOccupancy());
-}
-
-
-int Board::countOnFile(const int file, const Piece piece) const{
-    const uint64_t fm = fileMask(file);
-    return std::popcount(fm & getOccupancy(piece));
-}
-
-int Board::countForwardsOnFile(const bool forwardsForWhite, const Square square, const bool countAllPieces = false) const{
-
-    const auto file = squareToRankAndFile(square).file;
-    const auto forwardSquare = forwardsForWhite ? square + 8 : square - 8;
-    const auto forwardsMask = forwardsForWhite ? ~((1ULL << forwardSquare) - 1) : (1ULL << square) - 1;
-    const uint64_t fm = fileMask(file);
-    const auto colourToCount = forwardsForWhite ? Black : White;
-    const auto occupancy = countAllPieces ? getOccupancy() : getOccupancy(colourToCount);
-    return std::popcount(fm & occupancy & forwardsMask);
-}
-
-int Board::countPawnsForwardOnFile(const bool forwardsForWhite, const Square square) const{
-
-    const auto file = squareToRankAndFile(square).file;
-    const auto forwardSquare = forwardsForWhite ? square + 8 : square - 8;
-    const auto forwardsMask = forwardsForWhite ? ~((1ULL << forwardSquare) - 1) : (1ULL << square) - 1;
-    const uint64_t fm = fileMask(file);
-    const auto occupancy = getOccupancy(Piece(Pawn,White)) | getOccupancy(Piece(Pawn,Black));
-    return std::popcount(fm & occupancy & forwardsMask);
-}
-
-int Board::countOnFile(const int file, const PieceType piece) const{
-    const uint64_t fm = fileMask(file);
-    const auto whiteOccupancy = getOccupancy(Piece(piece, White));
-    const auto blackOccupancy = getOccupancy(Piece(piece, Black));
-    const auto maskedOccupancy = (whiteOccupancy | blackOccupancy) & fm;
-    return std::popcount(maskedOccupancy);
-}
 
 void Board::loadFen(const Fen& fen){ FromFen(fen); }
 
@@ -332,6 +272,12 @@ void Board::setOn(const Piece piece, const Square square){
     boards_[piece.index()] |= 1ULL << square;
 }
 
+void Board::setOff(const Piece piece, const Square square){
+    // this will currently overwrite the piece that moved there
+    board_[square] = Piece();
+    boards_[piece.index()] &= ~(1ULL << square);
+}
+
 void Board::movePiece(const Piece piece, const Square from, const Square to){
     setOff(piece, from);
     setOn(piece, to);
@@ -395,4 +341,30 @@ void Board::pushHistory(const Piece capturedPiece){
                 .halfMoves = halfMoves_, .fullMoves = fullMoves_, .capturedPiece = capturedPiece
             };
     history_.push_back(currentState);
+}
+
+void Board::updateCastlingRights(const Piece pieceMoved, const RankAndFile moveFrom){
+    // moving the king loses that side's castling rights
+    if (pieceMoved.type() == King) {
+        if (pieceMoved.colour() == White)
+            castlingRights_ &= ~(FenHelpers::WhiteKingside | FenHelpers::WhiteQueenside);
+        else { castlingRights_ &= ~(FenHelpers::BlackKingside | FenHelpers::BlackQueenside); }
+    }
+    // moving a rook also loses castling rights - only if from original square
+    if (pieceMoved.type() == Rook) {
+        const auto moveFromSquare = rankAndFileToSquare(moveFrom.rank, moveFrom.file);
+        if (moveFromSquare == 7) castlingRights_ &= ~FenHelpers::WhiteKingside;
+        if (moveFromSquare == 0) castlingRights_ &= ~FenHelpers::WhiteQueenside;
+        if (moveFromSquare == 63) castlingRights_ &= ~FenHelpers::BlackKingside;
+        if (moveFromSquare == 56) castlingRights_ &= ~FenHelpers::BlackQueenside;
+    }
+}
+
+
+int countOccupantsForward(const bool forWhite, const Square square, const Bitboard pawnBoard){
+    const auto file = squareToRankAndFile(square).file;
+    const auto forwardSquare = forWhite ? square + 8 : square - 8;
+    const auto forwardsMask = forWhite ? ~((1ULL << forwardSquare) - 1) : (1ULL << square) - 1;
+    const uint64_t fm = fileMask(file);
+    return std::popcount(fm & pawnBoard & forwardsMask);
 }

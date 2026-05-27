@@ -12,14 +12,22 @@ struct MaterialEval {
     int materialScore;
 };
 
+struct Material {
+    Bitboard whitePawns = 0ULL;
+    Bitboard blackPawns = 0ULL;
+    Bitboard whiteKing = 0ULL;
+    Bitboard blackKing = 0ULL;
+};
+
+
 class Evaluator {
 public:
 
     static int Evaluate(const Board& board);
-    static MaterialEval EvaluateMaterial(const Board& board, bool forWhite, float endGameRatio);
-    static int KingSafetyScore(bool forWhite, const Board& board);
+    static MaterialEval EvaluateMaterial(const Board& board, bool forWhite, float endGameRatio, Material& outMaterial);
+    static int KingSafetyScore(bool forWhite, const Board& board, const Material& material);
     static int KingShieldScoreByColour(bool forWhite, const Board& board);
-    static int KingOpenFileScore(bool forWhite, const Board& board);
+    static int KingOpenFileScore(bool forWhite, const Board& board, const Material& material);
     static int kingShieldPenalty;
     static int openfilePenalty;
 

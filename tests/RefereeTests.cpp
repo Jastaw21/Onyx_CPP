@@ -40,8 +40,9 @@ TEST(RefereeTests,DoesntNeedDoubleOnRayToNotBePin){
     EXPECT_TRUE(Referee::MoveIsLegal(board,c3a4));
 }
 TEST(RefereeTests,SquareAttacked){
+    Bitboard outOccupancy;
     auto board = Board("r3k2r/p1ppqpb1/bn2pnN1/3P4/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1");
-    EXPECT_TRUE(Referee::SquareAttacked(61,board,true));
+    EXPECT_TRUE(Referee::SquareAttacked(61,board,true,outOccupancy));
 
     auto fishyKingMove = moveFromNotation("e8f8");
     EXPECT_FALSE(Referee::MoveIsLegal(board,fishyKingMove));

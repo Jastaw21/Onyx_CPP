@@ -25,8 +25,7 @@ public:
                                                                               thread(&SearchThread::loop, this),
                                                                               controller_(controller){}
 
-    ~SearchThread() {
-        {
+    ~SearchThread(){ {
             std::lock_guard lock(mutex);
             exiting = true;
         }
@@ -43,9 +42,8 @@ public:
         }
         cv.notify_one();
     }
-    Searcher& GetSearcher(){
-        return searcher_;
-    }
+
+    Searcher& GetSearcher(){ return searcher_; }
 
     void Stop(){ token_.stop(); }
     SearchResults getLastResults() const{ return lastResults; }

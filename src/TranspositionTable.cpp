@@ -174,7 +174,7 @@ TTEval TranspositionTable::Lookup(const ZobristHash key, const int depthRemainin
     return TTEval::Failed(); // no match;
 }
 
-TTEntry* TranspositionTable::GetEntry(const ZobristHash key){
+const TTEntry* TranspositionTable::GetEntry(const ZobristHash key) const{
     const uint64_t index = key & indexMask;
     if (key == table[index].key) return &table[index];
     return nullptr;

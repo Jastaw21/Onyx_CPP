@@ -2,16 +2,16 @@
 // Created by jacks on 09/02/2026.
 //
 
-#include "../include/SearchController.h"
+#include "SearchController.h"
 
 #include "Evaluator.h"
 #include  "Options.h"
 
-SearchController::SearchController(Board& board) : board_(board), transpositionTable_(512), worker_(
-                                                       std::make_unique<SearchThread>(
-                                                           board, this, [this](const SearchInfo& info) {
-                                                               onDepthComplete(info);
-                                                           })){}
+SearchController::SearchController(Board& board) : transpositionTable_(512),
+                                                   worker_(std::make_unique<SearchThread>(
+                                                       board, this, [this](const SearchInfo& info) {
+                                                           onDepthComplete(info);
+                                                       })), board_(board){}
 
 
 void SearchController::start(const SearchOptions& options){
@@ -50,9 +50,7 @@ void SearchController::PushOptions(Options& options) const{
     Evaluator::openfilePenalty = std::get<int>(ofPen.value);
 }
 
-
 void SearchController::onNewGame(){ transpositionTable_.Reset(); }
-
 
 void SearchController::onDepthComplete(const SearchInfo& info) const{
     const auto te = timer_.elapsedMs();

@@ -11,9 +11,11 @@ TEST(EvaluatorTests, PieceSquareScore){
     auto rookOnA1 = Board("8/8/8/8/8/8/8/R7 w - - 0 1");
     auto rookOnA7 = Board("8/R7/8/8/8/8/8/8 w - - 0 1");
 
+    Material mat;
 
-    auto a1 = Evaluator::EvaluateMaterial(rookOnA1, true,0.0f).pieceSquareScore;
-    auto a7 = Evaluator::EvaluateMaterial(rookOnA7, true,0.0f).pieceSquareScore;
+
+    auto a1 = Evaluator::EvaluateMaterial(rookOnA1, true,0.0f, mat).pieceSquareScore;
+    auto a7 = Evaluator::EvaluateMaterial(rookOnA7, true,0.0f, mat).pieceSquareScore;
 
 
     // prefers forward rooks
@@ -23,8 +25,8 @@ TEST(EvaluatorTests, PieceSquareScore){
     auto rookOnA7_black = Board("8/r7/8/8/8/8/8/8 b - - 0 1");
 
 
-    auto a1_black = Evaluator::EvaluateMaterial(rookOnA1_black, false,0.0f).pieceSquareScore;
-    auto a7_black = Evaluator::EvaluateMaterial(rookOnA7_black, false,0.0f).pieceSquareScore;
+    auto a1_black = Evaluator::EvaluateMaterial(rookOnA1_black, false,0.0f, mat).pieceSquareScore;
+    auto a7_black = Evaluator::EvaluateMaterial(rookOnA7_black, false,0.0f, mat).pieceSquareScore;
     EXPECT_TRUE(a1_black>a7_black);
 }
 

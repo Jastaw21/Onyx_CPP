@@ -63,11 +63,7 @@ public:
     Bitboard getOccupancy() const;
     std::array<Piece, 64>& getBoard(){ return board_; }
 
-    int countOnFile(int file) const; // any piece
-    int countOnFile(int file, Piece piece) const; // specific piece (colour included)
-    int countForwardsOnFile(bool forwardsForWhite, Square square, bool countAllPieces) const; // specific piece (colour included), forwards from square
-    int countPawnsForwardOnFile(bool forwardsForWhite, Square square) const;
-    int countOnFile(int file, PieceType piece) const; // piece type (regardless of colour)
+
 
     // fen loading/gettting
     void loadFen(const Fen& fen);
@@ -85,6 +81,8 @@ private:
     void pushHistory(Piece capturedPiece);
     void updateCastlingRights(Piece pieceMoved, RankAndFile moveFrom);
 };
+
+int countOccupantsForward(const bool forWhite, const Square square, const Bitboard pawnBoard);
 
 
 #endif //ONYXCPP_BOARD_H
