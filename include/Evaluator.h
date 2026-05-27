@@ -15,21 +15,8 @@ struct MaterialEval {
 struct Material {
     Bitboard whitePawns = 0ULL;
     Bitboard blackPawns = 0ULL;
-
     Bitboard whiteKing = 0ULL;
     Bitboard blackKing = 0ULL;
-
-    Bitboard whiteBishop = 0ULL;
-    Bitboard blackBishop = 0ULL;
-
-    Bitboard whiteRook = 0ULL;
-    Bitboard blackRook = 0ULL;
-
-    Bitboard whiteKnight = 0ULL;
-    Bitboard blackKnight = 0ULL;
-
-    Bitboard whiteQueen = 0ULL;
-    Bitboard blackQueen = 0ULL;
 };
 
 

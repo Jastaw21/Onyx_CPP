@@ -27,6 +27,13 @@ TEST(Core_Pieces, type){
     EXPECT_EQ(whiteRook.type(), Rook);
 }
 
+TEST(Core_Pieces, Index){
+    const auto whitePawn = Piece(PieceType::Pawn, Colour::White);
+    EXPECT_EQ(whitePawn.index(), 0);
+    const auto whiteRook = Piece(Rook, White);
+    EXPECT_EQ(whiteRook.index(), 3);
+}
+
 TEST(Core_Move, Init){
     constexpr Square fromSquare = 8; // a2
     constexpr Square toSquare = 16; // a4
