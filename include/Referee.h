@@ -13,7 +13,7 @@ public:
 
     static bool MoveIsLegal(Board& board, Move move);
     static bool IsInCheck(const Board& board, bool forWhite);
-    static bool SquareAttacked(Square square, const Board& board, bool byWhite);
+    static bool SquareAttacked(Square square, const Board& board, bool byWhite, Bitboard& outOccupancy);
     static bool isDraw(Board& board){return isRepetition(board) || board.halfMoves() >= 100;}
     static bool isRepetition(Board& board);
     static bool isCapture(const Board& board, Move move);
@@ -21,7 +21,7 @@ public:
 private:
 
     static bool fullLegalityTest(Board& board, Move move);
-    static bool wouldReleasePin(Square pinnedFrom, Square pinnedTo, Square kingSquare, bool isWhite, const Board& board);
+    static bool wouldReleasePin(Square pinnedFrom, Square pinnedTo, Square kingSquare, bool isWhite, const Board& board, Bitboard allOccupancy);
 };
 
 

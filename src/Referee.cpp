@@ -17,15 +17,16 @@ bool Referee::MoveIsLegal(Board& board, const Move move){
     const bool isWhite = pieceMoved.isWhite();
     const Colour colourMoved = pieceMoved.colour();
 
-    const auto relevantKing = Piece(King, colourMoved);
-    const Bitboard kingBoard = board.getOccupancy(relevantKing);
-    const auto kingSquare = static_cast<Square>(std::countr_zero(kingBoard));
+    const auto ourKingPiece = Piece(King, colourMoved);
+    const Bitboard ourKingBoard = board.getOccupancy(ourKingPiece);
+    const auto ourKingSquare = static_cast<Square>(std::countr_zero(ourKingBoard));
+    Bitboard allOccupancy;
 
     // if we're not in check - only need to check for releasing pins
-    if (!SquareAttacked(kingSquare, board, !isWhite)) {
+    if (!SquareAttacked(ourKingSquare, board, !isWhite, allOccupancy)) {
 
         // if it DOESNT release a pin, it must be legal
-        return !wouldReleasePin(move.from(), move.to(), kingSquare, isWhite, board);
+        return !wouldReleasePin(move.from(), move.to(), ourKingSquare, isWhite, board, allOccupancy);
     }
     // otherwise - we were in check, need to do full test
     return fullLegalityTest(board, move);
@@ -35,11 +36,11 @@ bool Referee::IsInCheck(const Board& board, const bool forWhite){
     const Piece relevantKing = forWhite ? Piece(King, White) : Piece(King, Black);
     const Bitboard kingBoard = board.getOccupancy(relevantKing);
     const auto kingSquare = static_cast<Square>(std::countr_zero(kingBoard));
-
-    return SquareAttacked(kingSquare, board, !forWhite);
+    Bitboard outOccupancy;
+    return SquareAttacked(kingSquare, board, !forWhite, outOccupancy);
 }
 
-bool Referee::SquareAttacked(const Square square, const Board& board, const bool byWhite){
+bool Referee::SquareAttacked(const Square square, const Board& board, const bool byWhite, Bitboard& outOccupancy){
     const auto [rank, file] = squareToRankAndFile(square);
     const Colour colour = byWhite ? White : Black;
 
@@ -61,16 +62,16 @@ bool Referee::SquareAttacked(const Square square, const Board& board, const bool
 
     // try knights
     const Bitboard knightPlacements = board.getOccupancy(Piece(Knight, colour));
-    const Bitboard occupancy = board.getOccupancy();
+    outOccupancy = board.getOccupancy();
     const auto KnightsAttacksFromHere =
-            MagicBitboards::getMoves(Piece(Knight, White), square, occupancy);
+            MagicBitboards::getMoves(Piece(Knight, White), square, outOccupancy);
     if (knightPlacements & KnightsAttacksFromHere)
         return true;
 
     // try kings
     const Bitboard kingPlacements = board.getOccupancy(Piece(King, colour));
     const auto kingAttacksFromHere =
-            MagicBitboards::getMoves(Piece(King, White), square, occupancy);
+            MagicBitboards::getMoves(Piece(King, White), square, outOccupancy);
     if (kingPlacements & kingAttacksFromHere)
         return true;
 
@@ -80,13 +81,13 @@ bool Referee::SquareAttacked(const Square square, const Board& board, const bool
     // try diagonal threats
     if (diagonalThreats) {
         const auto diagonalAttacks =
-                MagicBitboards::getMoves(Piece(Bishop, White), square, occupancy);
+                MagicBitboards::getMoves(Piece(Bishop, White), square, outOccupancy);
         if (diagonalThreats & diagonalAttacks)
             return true;
     }
 
     if (const Bitboard straightThreats = queens | board.getOccupancy(Piece(Rook, colour))) {
-        const auto straightAttacks = MagicBitboards::getMoves(Piece(Rook, White), square, occupancy);
+        const auto straightAttacks = MagicBitboards::getMoves(Piece(Rook, White), square, outOccupancy);
         if (straightAttacks & straightThreats)
             return true;
     }
@@ -123,11 +124,11 @@ bool Referee::fullLegalityTest(Board& board, const Move move){
 }
 
 bool Referee::wouldReleasePin(const Square pinnedFrom, const Square pinnedTo, const Square kingSquare,
-                              const bool isWhite, const Board& board){
+                              const bool isWhite, const Board& board, const Bitboard allOccupancy){
     const auto ray = rayBetween(kingSquare, pinnedFrom);
     if (ray == 0) return false; // not on a ray, can't be pinned
 
-    const Bitboard occupancyWithoutPotentialPinned = board.getOccupancy() & ~(1ULL << pinnedFrom);
+    const Bitboard occupancyWithoutPotentialPinned = allOccupancy & ~(1ULL << pinnedFrom);
 
     const Colour theirColour = isWhite ? Black : White;
 

@@ -193,8 +193,7 @@ Psq& Evaluator::getTableByPieceType(const PieceType type){
 		case Knight     : return  knightTables;
 		case Queen      : return  queenTables;
 		case King       : return  kingTables;
-		case Bishop     : return  bishopTables;
-        default: ;
+		case Bishop     : return  bishopTables;        
     }
 }
 
