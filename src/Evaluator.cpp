@@ -185,6 +185,8 @@ MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite
         pieceIdx++;
     }
 
+    const auto ratio = actualPieceValue(outMaterial);
+
     // now the piece square score
     pieceIdx = 0;
     for (const Piece piece: pieces) {
@@ -217,10 +219,10 @@ MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite
             const auto index = forWhite ? thisSquare ^ 56 : thisSquare;
             const auto startScore = squareScores[index].start;
 
-            if (endGameRatio > 0.001f) {
+            if (ratio > 0.001f) {
                 const auto endScore = squareScores[index].end;
 
-                eval.pieceSquareScore += startScore * (1.0 - endGameRatio) + endScore * endGameRatio;
+                eval.pieceSquareScore += startScore * (1.0 - ratio) + endScore * ratio;
             } else { eval.pieceSquareScore += startScore; }
 
             placements &= placements - 1;
