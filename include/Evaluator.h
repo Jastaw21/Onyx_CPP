@@ -13,11 +13,25 @@ struct MaterialEval {
 };
 
 struct Material {
-    Bitboard whitePawns = 0ULL;
-    Bitboard blackPawns = 0ULL;
-    Bitboard whiteKing = 0ULL;
-    Bitboard blackKing = 0ULL;
+    Bitboard Pawns = 0ULL;
+    int pawnCount = 0;
+
+    Bitboard King = 0ULL;
+    int kingCount = 0;
+
+    Bitboard Bishop = 0ULL;
+    int bishopCount = 0;
+
+    Bitboard Rook = 0ULL;
+    int rookCount = 0;
+
+    Bitboard Knight = 0ULL;
+    int knightCount = 1; // always 1
+
+    Bitboard Queen = 0ULL;
+    int queenCount = 0;
 };
+
 
 
 class Evaluator {

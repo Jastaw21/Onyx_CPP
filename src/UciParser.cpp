@@ -161,7 +161,7 @@ std::optional<Command> UCIParser::parseSetOption(){
 
         return SetOptionCommand{
                     name, rawValue
-                };;
+                };
     }
     if (peek().type == TokenType::True)
         {consume();return SetOptionCommand{name,true};}
