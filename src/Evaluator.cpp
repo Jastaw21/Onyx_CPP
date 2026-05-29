@@ -129,11 +129,16 @@ int Evaluator::Evaluate(const Board& board){
     const auto w_kssScore = KingSafetyScore(true, board, whiteMaterial);
     const auto b_kssScore = KingSafetyScore(false, board, blackMaterial);
 
+    const auto wPP = PassedPawnScore(true, board, whiteMaterial,blackMaterial);
+    const auto bPP = PassedPawnScore(false,board,whiteMaterial,blackMaterial);
+
 
     score += whitePsqScore.materialScore - blackPsqScore.materialScore;
     score += whitePsqScore.pieceSquareScore - blackPsqScore.pieceSquareScore;
 
     score += w_kssScore - b_kssScore;
+
+    score += wPP - bPP;
 
     return score * (board.whiteToMove() ? 1 : -1);
 }
@@ -311,8 +316,22 @@ int Evaluator::KingOpenFileScore(const bool forWhite, const Board& board, const 
     return 0;
 }
 
-int Evaluator::PassedPawnScore(bool forWhite, Square pawnSquare, const Board& board, const Material& whiteMaterial, const Material& blackMaterial){
+int Evaluator::PassedPawnScore(bool forWhite, const Board& board, const Material& whiteMaterial, const Material& blackMaterial){
+
+    Bitboard relevantPawns = forWhite ? whiteMaterial.Pawns : blackMaterial.Pawns;
+    const Bitboard pawnMask = whiteMaterial.Pawns | blackMaterial.Pawns;
+    int totalPassedPawns = 0;
+
+    while (relevantPawns) {
+        const Square passedPawnSquare = static_cast<int>(std::countr_zero(relevantPawns));
+        const Bitboard forwards = countOccupantsForward(forWhite, passedPawnSquare,pawnMask);
+        if (forwards == 0)
+            totalPassedPawns += 1;
+
+        relevantPawns &= relevantPawns -1;
+    }
 
 
-    return 0;
+
+    return totalPassedPawns * 100 / 8.0f;
 }

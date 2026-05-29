@@ -42,7 +42,7 @@ public:
     static int KingSafetyScore(bool forWhite, const Board& board, const Material& material);
     static int KingShieldScoreByColour(bool forWhite, const Board& board);
     static int KingOpenFileScore(bool forWhite, const Board& board, const Material& material);
-    static int PassedPawnScore(bool forWhite, Square pawnSquare, const Board& board, const Material& whiteMaterial, const Material& blackMaterial);
+    static int PassedPawnScore(bool forWhite, const Board& board, const Material& whiteMaterial, const Material& blackMaterial);
     static int kingShieldPenalty;
     static int openfilePenalty;
 
