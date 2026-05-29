@@ -361,10 +361,10 @@ void Board::updateCastlingRights(const Piece pieceMoved, const RankAndFile moveF
 }
 
 
-int countOccupantsForward(const bool forWhite, const Square square, const Bitboard pawnBoard){
+int countOccupantsForward(const bool forWhite, const Square square, const Bitboard pieceMask){
     const auto file = squareToRankAndFile(square).file;
     const auto forwardSquare = forWhite ? square + 8 : square - 8;
     const auto forwardsMask = forWhite ? ~((1ULL << forwardSquare) - 1) : (1ULL << square) - 1;
     const uint64_t fm = fileMask(file);
-    return std::popcount(fm & pawnBoard & forwardsMask);
+    return std::popcount(fm & pieceMask & forwardsMask);
 }

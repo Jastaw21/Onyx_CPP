@@ -85,7 +85,7 @@ private:
     void updateCastlingRights(Piece pieceMoved, RankAndFile moveFrom);
 };
 
-int countOccupantsForward(const bool forWhite, const Square square, const Bitboard pawnBoard);
+int countOccupantsForward(const bool forWhite, const Square square, const Bitboard pieceMask);
 
 
 #endif //ONYXCPP_BOARD_H

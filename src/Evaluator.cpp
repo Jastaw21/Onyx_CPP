@@ -25,12 +25,12 @@ std::array<Piece, 6> Evaluator::blackPieces = {
 int Evaluator::kingShieldPenalty = 10;
 int Evaluator::openfilePenalty = 10;
 
-const int queenEndgameWeight = 45;
-const int rookEndgameWeight = 20;
-const int bishopEndgameWeight = 10;
-const int knightEndgameWeight = 10;
+constexpr int queenEndgameWeight = 45;
+constexpr int rookEndgameWeight = 20;
+constexpr int bishopEndgameWeight = 10;
+constexpr int knightEndgameWeight = 10;
 
-const int startPieceValue =
+constexpr int startPieceValue =
         2 * rookEndgameWeight +
         2 * knightEndgameWeight +
         2 * bishopEndgameWeight +
@@ -125,9 +125,9 @@ int Evaluator::Evaluate(const Board& board){
     Material whiteMaterial;
 	Material blackMaterial;
     const auto whitePsqScore = EvaluateMaterial(board, true, whiteMaterial);
-    const auto blackPsqScore = EvaluateMaterial(board, false, whiteMaterial);
+    const auto blackPsqScore = EvaluateMaterial(board, false, blackMaterial);
     const auto w_kssScore = KingSafetyScore(true, board, whiteMaterial);
-    const auto b_kssScore = KingSafetyScore(false, board, whiteMaterial);
+    const auto b_kssScore = KingSafetyScore(false, board, blackMaterial);
 
 
     score += whitePsqScore.materialScore - blackPsqScore.materialScore;
@@ -175,6 +175,7 @@ MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite
             case 5:
                 outMaterial.King = placements;
                 break;
+            default: break;
         }
 
         // get the material score - don't bother for kings
@@ -211,6 +212,7 @@ MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite
             case 5:
                 placements = outMaterial.King;
                 break;
+            default: break;
         }
 
         const auto pieceType = piece.type();
@@ -271,7 +273,8 @@ Psq& Evaluator::getTableByPieceType(const PieceType type){
 		case Knight     : return  knightTables;
 		case Queen      : return  queenTables;
 		case King       : return  kingTables;
-		case Bishop     : return  bishopTables;        
+		case Bishop     : return  bishopTables;
+        default: ;
     }
 }
 
@@ -305,5 +308,11 @@ int Evaluator::KingOpenFileScore(const bool forWhite, const Board& board, const 
     const auto piecesAheadOnFile = countOccupantsForward(forWhite, asSquare, board.getOccupancy(Piece(Pawn, White)) | board.getOccupancy(Piece(Pawn,Black)));
     if (piecesAheadOnFile == 0)
         return -openfilePenalty; // penalty for an open file
+    return 0;
+}
+
+int Evaluator::PassedPawnScore(bool forWhite, Square pawnSquare, const Board& board, const Material& whiteMaterial, const Material& blackMaterial){
+
+
     return 0;
 }
