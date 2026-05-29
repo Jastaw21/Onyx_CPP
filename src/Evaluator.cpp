@@ -36,7 +36,7 @@ const int startPieceValue =
         2 * bishopEndgameWeight +
         queenEndgameWeight;
 
-int actualPieceValue(const Material& material){
+static float actualPieceValue(const Material& material){
     const auto actVal =
             material.rookCount * rookEndgameWeight +
             material.queenCount * queenEndgameWeight +
@@ -122,11 +122,12 @@ int Evaluator::Evaluate(const Board& board){
     int score = 0;
 
 
-    Material outMaterial;
-    const auto whitePsqScore = EvaluateMaterial(board, true, 0, outMaterial);
-    const auto blackPsqScore = EvaluateMaterial(board, false, 0, outMaterial);
-    const auto w_kssScore = KingSafetyScore(true, board, outMaterial);
-    const auto b_kssScore = KingSafetyScore(false, board, outMaterial);
+    Material whiteMaterial;
+	Material blackMaterial;
+    const auto whitePsqScore = EvaluateMaterial(board, true, whiteMaterial);
+    const auto blackPsqScore = EvaluateMaterial(board, false, whiteMaterial);
+    const auto w_kssScore = KingSafetyScore(true, board, whiteMaterial);
+    const auto b_kssScore = KingSafetyScore(false, board, whiteMaterial);
 
 
     score += whitePsqScore.materialScore - blackPsqScore.materialScore;
@@ -137,7 +138,7 @@ int Evaluator::Evaluate(const Board& board){
     return score * (board.whiteToMove() ? 1 : -1);
 }
 
-MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite, const float endGameRatio, Material& outMaterial){
+MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite, Material& outMaterial) {
     const auto& pieces = forWhite ? whitePieces : blackPieces;
     MaterialEval eval{0, 0};
 
@@ -153,23 +154,23 @@ MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite
         switch (pieceIdx) {
             case 0:
                 outMaterial.Pawns = placements;
-                outMaterial.pawnCount+= count;
+                outMaterial.pawnCount += count;
                 break;
             case 1:
                 outMaterial.Knight = placements;
-                outMaterial.knightCount+= count;
+                outMaterial.knightCount += count;
                 break;
             case 2:
                 outMaterial.Bishop = placements;
-                outMaterial.bishopCount+= count;
+                outMaterial.bishopCount += count;
                 break;
             case 3:
                 outMaterial.Rook = placements;
-                outMaterial.rookCount+= count;
+                outMaterial.rookCount += count;
                 break;
             case 4:
                 outMaterial.Queen = placements;
-                outMaterial.queenCount+= count;
+                outMaterial.queenCount += count;
                 break;
             case 5:
                 outMaterial.King = placements;
@@ -202,13 +203,13 @@ MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite
                 placements = outMaterial.Bishop;
                 break;
             case 3:
-                placements = outMaterial.Rook ;
+                placements = outMaterial.Rook;
                 break;
             case 4:
                 placements = outMaterial.Queen;
                 break;
             case 5:
-                placements = outMaterial.King ;
+                placements = outMaterial.King;
                 break;
         }
 
@@ -222,7 +223,7 @@ MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite
             if (ratio > 0.001f) {
                 const auto endScore = squareScores[index].end;
 
-                eval.pieceSquareScore += startScore * (1.0 - ratio) + endScore * ratio;
+                eval.pieceSquareScore += startScore * ratio + endScore * (1.0f - ratio);
             } else { eval.pieceSquareScore += startScore; }
 
             placements &= placements - 1;

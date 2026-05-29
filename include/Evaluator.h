@@ -38,7 +38,7 @@ class Evaluator {
 public:
 
     static int Evaluate(const Board& board);
-    static MaterialEval EvaluateMaterial(const Board& board, bool forWhite, float endGameRatio, Material& outMaterial);
+    static MaterialEval EvaluateMaterial(const Board& board, bool forWhite, Material& outMaterial);
     static int KingSafetyScore(bool forWhite, const Board& board, const Material& material);
     static int KingShieldScoreByColour(bool forWhite, const Board& board);
     static int KingOpenFileScore(bool forWhite, const Board& board, const Material& material);
