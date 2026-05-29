@@ -59,8 +59,11 @@ public:
 
     // occupancy
     Bitboard getOccupancy(const Piece piece) const{ return boards_[piece.index()]; }
-    Piece pieceAtSquare(const Square square) const{ return board_[square]; }
+    Bitboard getOccupancy(Colour colour) const;
     Bitboard getOccupancy() const;
+
+    Piece pieceAtSquare(const Square square) const{ return board_[square]; }
+
     std::array<Piece, 64>& getBoard(){ return board_; }
 
 
@@ -73,7 +76,7 @@ public:
     void setOn(Piece piece, Square square);
     void setOff(Piece piece, Square square);
     void movePiece(Piece piece, Square from, Square to);
-    Bitboard getOccupancy(Colour colour) const;
+
 
 private:
 

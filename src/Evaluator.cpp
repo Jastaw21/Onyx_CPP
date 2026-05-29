@@ -6,18 +6,45 @@
 
 #include "MagicBitboards.h"
 
-
 std::array<Piece, 6> Evaluator::whitePieces = {
-            Piece(Pawn, White), Piece(King, White), Piece(Knight, White), Piece(Queen, White), Piece(Rook, White),
-            Piece(Bishop, White)
+            Piece(Pawn, White),
+            Piece(Knight, White),
+            Piece(Bishop, White),
+            Piece(Rook, White),
+            Piece(Queen, White),
+            Piece(King, White)
         };
 std::array<Piece, 6> Evaluator::blackPieces = {
-            Piece(Pawn, Black), Piece(King, Black), Piece(Knight, Black), Piece(Queen, Black), Piece(Rook, Black),
-            Piece(Bishop, Black)
+            Piece(Pawn, Black),
+            Piece(Knight, Black),
+            Piece(Bishop, Black),
+            Piece(Rook, Black),
+            Piece(Queen, Black),
+            Piece(King, Black)
         };
-
 int Evaluator::kingShieldPenalty = 10;
 int Evaluator::openfilePenalty = 10;
+
+const int queenEndgameWeight = 45;
+const int rookEndgameWeight = 20;
+const int bishopEndgameWeight = 10;
+const int knightEndgameWeight = 10;
+
+const int startPieceValue =
+        2 * rookEndgameWeight +
+        2 * knightEndgameWeight +
+        2 * bishopEndgameWeight +
+        queenEndgameWeight;
+
+static float actualPieceValue(const Material& material){
+    const auto actVal =
+            material.rookCount * rookEndgameWeight +
+            material.queenCount * queenEndgameWeight +
+            material.bishopCount * bishopEndgameWeight +
+            material.knightCount * knightEndgameWeight;
+
+    return  std::min(1.0f, actVal / static_cast<float>(startPieceValue));
+}
 
 // clang-format off
 Psq Evaluator::pawnTables = Psq{
@@ -95,11 +122,12 @@ int Evaluator::Evaluate(const Board& board){
     int score = 0;
 
 
-    Material outMaterial;
-    const auto whitePsqScore = EvaluateMaterial(board, true, 0, outMaterial);
-    const auto blackPsqScore = EvaluateMaterial(board, false, 0, outMaterial);
-    const auto w_kssScore = KingSafetyScore(true, board, outMaterial);
-    const auto b_kssScore = KingSafetyScore(false, board, outMaterial);
+    Material whiteMaterial;
+	Material blackMaterial;
+    const auto whitePsqScore = EvaluateMaterial(board, true, whiteMaterial);
+    const auto blackPsqScore = EvaluateMaterial(board, false, whiteMaterial);
+    const auto w_kssScore = KingSafetyScore(true, board, whiteMaterial);
+    const auto b_kssScore = KingSafetyScore(false, board, whiteMaterial);
 
 
     score += whitePsqScore.materialScore - blackPsqScore.materialScore;
@@ -110,46 +138,96 @@ int Evaluator::Evaluate(const Board& board){
     return score * (board.whiteToMove() ? 1 : -1);
 }
 
-MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite, const float endGameRatio, Material& outMaterial){
+MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite, Material& outMaterial) {
     const auto& pieces = forWhite ? whitePieces : blackPieces;
     MaterialEval eval{0, 0};
 
     // we'll use this to check the pawns and kings to populate the eval, as they're the first two in the lists
     int pieceIdx = 0;
-    for (auto const& piece: pieces) {
+
+    // material score loop
+    for (const Piece piece: pieces) {
         auto placements = board.getOccupancy(piece);
+        const auto count = std::popcount(placements);
 
         // we'll use these placements later in the eval function, may as well cache them to avoid loads of calls to getOccupancy
-        if (pieceIdx == 0) {
-            if (forWhite) outMaterial.whitePawns = placements;
-            else outMaterial.blackPawns = placements;
-        }
-        else if (pieceIdx == 1) {
-            if (forWhite) outMaterial.whiteKing = placements;
-            else outMaterial.blackKing = placements;
+        switch (pieceIdx) {
+            case 0:
+                outMaterial.Pawns = placements;
+                outMaterial.pawnCount += count;
+                break;
+            case 1:
+                outMaterial.Knight = placements;
+                outMaterial.knightCount += count;
+                break;
+            case 2:
+                outMaterial.Bishop = placements;
+                outMaterial.bishopCount += count;
+                break;
+            case 3:
+                outMaterial.Rook = placements;
+                outMaterial.rookCount += count;
+                break;
+            case 4:
+                outMaterial.Queen = placements;
+                outMaterial.queenCount += count;
+                break;
+            case 5:
+                outMaterial.King = placements;
+                break;
         }
 
-        // get the material score
-        const auto count = std::popcount(placements);
+        // get the material score - don't bother for kings
         const auto pieceType = piece.type();
-        eval.materialScore += count * pieceValues[pieceType];
+        if (pieceType != King) {
+            eval.materialScore += count * pieceValues[pieceType];
+        }
 
-        // now the piece square score
+        pieceIdx++;
+    }
+
+    const auto ratio = actualPieceValue(outMaterial);
+
+    // now the piece square score
+    pieceIdx = 0;
+    for (const Piece piece: pieces) {
+        Bitboard placements = 0ULL;
+        switch (pieceIdx) {
+            case 0:
+                placements = outMaterial.Pawns;
+                break;
+            case 1:
+                placements = outMaterial.Knight;
+                break;
+            case 2:
+                placements = outMaterial.Bishop;
+                break;
+            case 3:
+                placements = outMaterial.Rook;
+                break;
+            case 4:
+                placements = outMaterial.Queen;
+                break;
+            case 5:
+                placements = outMaterial.King;
+                break;
+        }
+
+        const auto pieceType = piece.type();
         const auto& squareScores = getTableByPieceType(pieceType); // get the table once for each piece
         while (placements) {
             const auto thisSquare = static_cast<Square>(std::countr_zero(placements));
             const auto index = forWhite ? thisSquare ^ 56 : thisSquare;
             const auto startScore = squareScores[index].start;
 
-            if (endGameRatio > 0.001f) {
+            if (ratio > 0.001f) {
                 const auto endScore = squareScores[index].end;
 
-                eval.pieceSquareScore += startScore * (1.0 - endGameRatio) + endScore * endGameRatio;
+                eval.pieceSquareScore += startScore * ratio + endScore * (1.0f - ratio);
             } else { eval.pieceSquareScore += startScore; }
 
             placements &= placements - 1;
         }
-
 
         pieceIdx++;
     }
@@ -221,11 +299,10 @@ int Evaluator::KingShieldScoreByColour(const bool forWhite, const Board& board){
 
 int Evaluator::KingOpenFileScore(const bool forWhite, const Board& board, const Material& material){
 
-    const auto location =  forWhite ? material.whiteKing : material.blackKing;
-    if (location == 0ULL) return 0; // No king
-    const auto asSquare = static_cast<Square>(std::countr_zero(location));
+    if (material.King == 0ULL) return 0; // No king
+    const auto asSquare = static_cast<Square>(std::countr_zero(material.King));
 
-    const auto piecesAheadOnFile = countOccupantsForward(forWhite, asSquare, material.blackPawns | material.whitePawns);
+    const auto piecesAheadOnFile = countOccupantsForward(forWhite, asSquare, board.getOccupancy(Piece(Pawn, White)) | board.getOccupancy(Piece(Pawn,Black)));
     if (piecesAheadOnFile == 0)
         return -openfilePenalty; // penalty for an open file
     return 0;
