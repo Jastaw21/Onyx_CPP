@@ -36,7 +36,7 @@ constexpr int startPieceValue =
         2 * bishopEndgameWeight +
         queenEndgameWeight;
 
-static float actualPieceValue(const Material& material){
+float actualPieceValue(const MaterialRecord& material){
     const auto actVal =
             material.rookCount * rookEndgameWeight +
             material.queenCount * queenEndgameWeight +
@@ -121,101 +121,93 @@ int Evaluator::Evaluate(const Board& board){
 
     int score = 0;
 
+    MaterialRecord whiteMaterial;
+    PopulateMaterialRecord(board,true,whiteMaterial);
 
-    Material whiteMaterial;
-	Material blackMaterial;
-    const auto whitePsqScore = EvaluateMaterial(board, true, whiteMaterial);
-    const auto blackPsqScore = EvaluateMaterial(board, false, blackMaterial);
-    const auto w_kssScore = KingSafetyScore(true, board, whiteMaterial);
-    const auto b_kssScore = KingSafetyScore(false, board, blackMaterial);
+    MaterialRecord blackMaterial;
+    PopulateMaterialRecord(board,false,blackMaterial);
 
-    const auto wPP = PassedPawnScore(true, board, whiteMaterial,blackMaterial);
-    const auto bPP = PassedPawnScore(false,board,whiteMaterial,blackMaterial);
+    const auto whiteMaterialValue = MaterialScore(whiteMaterial);
+    const auto blackMaterialValue = MaterialScore(blackMaterial);
+    score += whiteMaterialValue - blackMaterialValue;
 
+    const auto whiteEndGameRatio = actualPieceValue(whiteMaterial);
+    const auto blackEndGameRatio = actualPieceValue(blackMaterial);
 
-    score += whitePsqScore.materialScore - blackPsqScore.materialScore;
-    score += whitePsqScore.pieceSquareScore - blackPsqScore.pieceSquareScore;
+    const auto whitePsqScore = PieceSquareScore(true, whiteMaterial, whiteEndGameRatio);
+    const auto blackPsqScore = PieceSquareScore(false, blackMaterial, blackEndGameRatio);
+    score += whitePsqScore - blackPsqScore;
 
+    const auto w_kssScore = KingOpenFileScore(true, board, whiteMaterial);
+    const auto b_kssScore = KingOpenFileScore(false, board, blackMaterial);
     score += w_kssScore - b_kssScore;
 
+    const auto wPP = PassedPawnScore(true, whiteMaterial, blackMaterial);
+    const auto bPP = PassedPawnScore(false,whiteMaterial,blackMaterial);
     score += wPP - bPP;
 
+    // normalise to side to move
     return score * (board.whiteToMove() ? 1 : -1);
 }
 
-MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite, Material& outMaterial) {
-    const auto& pieces = forWhite ? whitePieces : blackPieces;
-    MaterialEval eval{0, 0};
+int Evaluator::MaterialScore(const MaterialRecord& relevantMaterial){
 
-    // we'll use this to check the pawns and kings to populate the eval, as they're the first two in the lists
-    int pieceIdx = 0;
+    int pieceIdx= 0;
+    int materialScore = 0;
 
-    // material score loop
-    for (const Piece piece: pieces) {
-        auto placements = board.getOccupancy(piece);
-        const auto count = std::popcount(placements);
-
-        // we'll use these placements later in the eval function, may as well cache them to avoid loads of calls to getOccupancy
+    for (const auto value : pieceValues) {
         switch (pieceIdx) {
             case 0:
-                outMaterial.Pawns = placements;
-                outMaterial.pawnCount += count;
+                materialScore+= relevantMaterial.pawnCount * value;
                 break;
             case 1:
-                outMaterial.Knight = placements;
-                outMaterial.knightCount += count;
+                materialScore+= relevantMaterial.knightCount * value;
                 break;
             case 2:
-                outMaterial.Bishop = placements;
-                outMaterial.bishopCount += count;
+                materialScore+= relevantMaterial.bishopCount * value;
                 break;
             case 3:
-                outMaterial.Rook = placements;
-                outMaterial.rookCount += count;
+                materialScore+= relevantMaterial.rookCount * value;
                 break;
             case 4:
-                outMaterial.Queen = placements;
-                outMaterial.queenCount += count;
+                materialScore+= relevantMaterial.queenCount * value;
                 break;
             case 5:
-                outMaterial.King = placements;
+                materialScore+= relevantMaterial.kingCount * value;
                 break;
             default: break;
         }
-
-        // get the material score - don't bother for kings
-        const auto pieceType = piece.type();
-        if (pieceType != King) {
-            eval.materialScore += count * pieceValues[pieceType];
-        }
-
         pieceIdx++;
     }
+    return materialScore;
+}
 
-    const auto ratio = actualPieceValue(outMaterial);
+int Evaluator::PieceSquareScore(const bool forWhite, const MaterialRecord& relevantMaterial,
+                                        const float endGameScore){
+    int pieceIdx = 0;
+    int pieceSquareScore = 0;
+    auto pieces = forWhite ? whitePieces : blackPieces;
 
-    // now the piece square score
-    pieceIdx = 0;
-    for (const Piece piece: pieces) {
+    for (const auto piece: pieces) {
         Bitboard placements = 0ULL;
         switch (pieceIdx) {
             case 0:
-                placements = outMaterial.Pawns;
+                placements = relevantMaterial.Pawns;
                 break;
             case 1:
-                placements = outMaterial.Knight;
+                placements = relevantMaterial.Knight;
                 break;
             case 2:
-                placements = outMaterial.Bishop;
+                placements = relevantMaterial.Bishop;
                 break;
             case 3:
-                placements = outMaterial.Rook;
+                placements = relevantMaterial.Rook;
                 break;
             case 4:
-                placements = outMaterial.Queen;
+                placements = relevantMaterial.Queen;
                 break;
             case 5:
-                placements = outMaterial.King;
+                placements = relevantMaterial.King;
                 break;
             default: break;
         }
@@ -227,11 +219,9 @@ MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite
             const auto index = forWhite ? thisSquare ^ 56 : thisSquare;
             const auto startScore = squareScores[index].start;
 
-            if (ratio > 0.001f) {
-                const auto endScore = squareScores[index].end;
+            const auto endScore = squareScores[index].end;
 
-                eval.pieceSquareScore += startScore * ratio + endScore * (1.0f - ratio);
-            } else { eval.pieceSquareScore += startScore; }
+            pieceSquareScore += startScore * endGameScore + endScore * (1.0f - endGameScore);
 
             placements &= placements - 1;
         }
@@ -239,7 +229,7 @@ MaterialEval Evaluator::EvaluateMaterial(const Board& board, const bool forWhite
         pieceIdx++;
     }
 
-    return eval;
+    return pieceSquareScore;
 }
 
 // clang-format off
@@ -285,10 +275,6 @@ Psq& Evaluator::getTableByPieceType(const PieceType type){
 
 // clang-format on
 
-int Evaluator::KingSafetyScore(const bool forWhite, const Board& board, const Material& material){
-
-    return KingOpenFileScore(forWhite, board, material);
-}
 
 int Evaluator::KingShieldScoreByColour(const bool forWhite, const Board& board){
     const auto piece = Piece(King, forWhite ? White : Black);
@@ -305,7 +291,7 @@ int Evaluator::KingShieldScoreByColour(const bool forWhite, const Board& board){
     return (numPossShields - numActShields) * -kingShieldPenalty;
 }
 
-int Evaluator::KingOpenFileScore(const bool forWhite, const Board& board, const Material& material){
+int Evaluator::KingOpenFileScore(const bool forWhite, const Board& board, const MaterialRecord& material){
 
     if (material.King == 0ULL) return 0; // No king
     const auto asSquare = static_cast<Square>(std::countr_zero(material.King));
@@ -316,22 +302,88 @@ int Evaluator::KingOpenFileScore(const bool forWhite, const Board& board, const 
     return 0;
 }
 
-int Evaluator::PassedPawnScore(bool forWhite, const Board& board, const Material& whiteMaterial, const Material& blackMaterial){
+int Evaluator::PassedPawnScore(const bool forWhite, const MaterialRecord& whiteMaterial, const MaterialRecord& blackMaterial){
 
     Bitboard relevantPawns = forWhite ? whiteMaterial.Pawns : blackMaterial.Pawns;
-    const Bitboard pawnMask = whiteMaterial.Pawns | blackMaterial.Pawns;
+    const Bitboard pawnMask = forWhite ? blackMaterial.Pawns : whiteMaterial.Pawns;
     int totalPassedPawns = 0;
 
     while (relevantPawns) {
-        const Square passedPawnSquare = static_cast<int>(std::countr_zero(relevantPawns));
-        const Bitboard forwards = countOccupantsForward(forWhite, passedPawnSquare,pawnMask);
-        if (forwards == 0)
+
+        auto possFiles = 0;
+        auto validFiles = 0;
+
+        const auto passedPawnSquare = static_cast<Square>(std::countr_zero(relevantPawns));
+        const auto raf = squareToRankAndFile(passedPawnSquare);
+        // check file left
+        if (raf.file > 0) {
+            possFiles++;
+            const auto leftSquare = passedPawnSquare - 1; // (left from white's perspective
+            const int fl = countOccupantsForward(forWhite, leftSquare,pawnMask);
+            if (fl == 0) validFiles++;
+
+        }
+        // check same file
+        possFiles++;
+        const int fc = countOccupantsForward(forWhite, passedPawnSquare,pawnMask);
+        if (fc == 0) validFiles++;
+
+        // check file right
+        if (raf.file < 7) {
+            possFiles++;
+            const auto rightSquare = passedPawnSquare + 1; // (left from white's perspective
+            const int fr = countOccupantsForward(forWhite, rightSquare,pawnMask);
+            if (fr == 0) validFiles++;
+        }
+
+
+        if (possFiles == validFiles)
             totalPassedPawns += 1;
 
         relevantPawns &= relevantPawns -1;
     }
 
+    return totalPassedPawns * 12; // a pawn if we have 8 passed pawns
+}
 
+void Evaluator::PopulateMaterialRecord(const Board& board, const bool forWhite, MaterialRecord& outMaterial){
+    const auto& pieces = forWhite ? whitePieces : blackPieces;
 
-    return totalPassedPawns * 100 / 8.0f;
+    int pieceIdx = 0;
+
+    // material score loop
+    for (const Piece piece: pieces) {
+        auto placements = board.getOccupancy(piece);
+        const auto count = std::popcount(placements);
+
+        // we'll use these placements later in the eval function, may as well cache them to avoid loads of calls to getOccupancy
+        switch (pieceIdx) {
+            case 0:
+                outMaterial.Pawns = placements;
+                outMaterial.pawnCount += count;
+                break;
+            case 1:
+                outMaterial.Knight = placements;
+                outMaterial.knightCount += count;
+                break;
+            case 2:
+                outMaterial.Bishop = placements;
+                outMaterial.bishopCount += count;
+                break;
+            case 3:
+                outMaterial.Rook = placements;
+                outMaterial.rookCount += count;
+                break;
+            case 4:
+                outMaterial.Queen = placements;
+                outMaterial.queenCount += count;
+                break;
+            case 5:
+                outMaterial.King = placements;
+                break;
+            default: break;
+        };
+
+        pieceIdx++;
+    }
 }
