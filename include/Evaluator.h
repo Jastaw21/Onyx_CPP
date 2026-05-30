@@ -12,7 +12,7 @@ struct MaterialEval {
     int materialScore;
 };
 
-struct Material {
+struct MaterialRecord {
     Bitboard Pawns = 0ULL;
     int pawnCount = 0;
 
@@ -37,17 +37,27 @@ struct Material {
 class Evaluator {
 public:
 
+    // main entry point, combines all evaluations together
     static int Evaluate(const Board& board);
-    static MaterialEval EvaluateMaterial(const Board& board, bool forWhite, Material& outMaterial);
-    static int KingSafetyScore(bool forWhite, const Board& board, const Material& material);
+
+
+    // individual scoring functions
+    static int MaterialScore(const MaterialRecord& relevantMaterial);
+    static int PieceSquareScore(bool forWhite, const MaterialRecord& relevantMaterial, float endGameScore);
     static int KingShieldScoreByColour(bool forWhite, const Board& board);
-    static int KingOpenFileScore(bool forWhite, const Board& board, const Material& material);
-    static int PassedPawnScore(bool forWhite, const Board& board, const Material& whiteMaterial, const Material& blackMaterial);
+    static int KingOpenFileScore(bool forWhite, const Board& board, const MaterialRecord& material);
+    static int PassedPawnScore(bool forWhite, const MaterialRecord& whiteMaterial, const MaterialRecord& blackMaterial);
+
+    // tweakable parameters
     static int kingShieldPenalty;
     static int openfilePenalty;
 
+    // precaches the material record of occupancy by piece, for one colour at a time
+    static void PopulateMaterialRecord(const Board& board, bool forWhite, MaterialRecord& outMaterial);
+
 private:
 
+    // piece square score tables
     static Psq pawnTables;
     static Psq rookTables;
     static Psq kingTables;
@@ -55,11 +65,13 @@ private:
     static Psq bishopTables;
     static Psq knightTables;
 
+    // helpers to clean up psq function
     static int getScoreOnSquare(PieceType type, Square onSquare, bool isWhite, bool endGame);
     static Psq& getTableByPieceType(const PieceType type);
     static std::array<Piece, 6> whitePieces;
     static std::array<Piece, 6> blackPieces;
 };
 
+float actualPieceValue(const MaterialRecord& material);
 
 #endif //ONYXCPP_EVALUATOR_H

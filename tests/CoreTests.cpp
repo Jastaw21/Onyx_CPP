@@ -257,7 +257,7 @@ TEST(CoreTests, BuildBoardFromMoveString2){
 }
 
 TEST(CoreTests, CountPiecesOnFile){
-    const auto board = Board("8/p7/p7/p7/p7/p7/p7/8 w - - 0 1");
+    auto board = Board("8/p7/p7/p7/p7/p7/p7/8 w - - 0 1");
 
     // counting all pieces
     const auto whiteSquare = rankAndFileToSquare(2,0);
@@ -265,4 +265,7 @@ TEST(CoreTests, CountPiecesOnFile){
     EXPECT_EQ(countOccupantsForward(true,whiteSquare,pawns),4);
     EXPECT_EQ(countOccupantsForward(false,whiteSquare,pawns),1);
 
+
+
 }
+
