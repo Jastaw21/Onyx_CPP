@@ -269,3 +269,13 @@ TEST(CoreTests, CountPiecesOnFile){
 
 }
 
+TEST(CoreTests,MateValue){
+    int matein1 = MATE_VALUE - 1;
+    EXPECT_EQ(toMateText(matein1),"mate 1");
+    matein1 *= -1;
+    EXPECT_EQ(toMateText(matein1),"mate -1");
+
+    int matein4 = MATE_VALUE - 8;
+    EXPECT_EQ(toMateText(matein4),"mate 4");
+}
+

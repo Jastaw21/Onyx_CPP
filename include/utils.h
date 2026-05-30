@@ -155,9 +155,17 @@ void fillRandomArray(ArrayType* array, std::mt19937& rng) {
     }
 }
 
-constexpr int MATE = 20000;
+constexpr int MATE_VALUE = 20000;
 constexpr int INF = 30000;
-inline bool isMateScore(const int score){ return std::abs(score) >= MATE; }
+inline bool isMateScore(const int score){
+    return std::abs(score) >= MATE_VALUE - 20;
+}
+inline std::string toMateText(const int score){
+    const auto plyToMate = MATE_VALUE - std::abs(score);
+    const int movesToMate = static_cast<int>(std::ceil(plyToMate/2.0f));
+    const int mateValue = movesToMate * (score <0 ? -1 : 1);
+    return "mate " + std::to_string(mateValue);
+}
 inline int correctedMatedScore(const int score, const int plyFromRoot){
     if (!isMateScore(score)) return score;
     if (score > 0) return score - plyFromRoot;

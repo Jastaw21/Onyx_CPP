@@ -81,14 +81,14 @@ SearchResults Searcher::search(const SearchOptions& options){
 }
 
 int Searcher::DecodeMateScore(const int score, const int depthFromRoot){
-    if (score > MATE - 500) return score - depthFromRoot;
-    if (score < -(MATE - 500)) return score + depthFromRoot;
+    if (score > MATE_VALUE - 500) return score - depthFromRoot;
+    if (score < -(MATE_VALUE - 500)) return score + depthFromRoot;
     return score;
 }
 
 int Searcher::EncodeMateScore(const int score, const int depthFromRoot){
-    if (score > MATE - 500) return score + depthFromRoot;
-    if (score < -(MATE - 500)) return score - depthFromRoot;
+    if (score > MATE_VALUE - 500) return score + depthFromRoot;
+    if (score < -(MATE_VALUE - 500)) return score - depthFromRoot;
     return score;
 }
 
@@ -209,7 +209,7 @@ SearchFlag Searcher::DoSearch(const int depthRemaining, const int depthFromRoot,
     // handle terminal states
     int score;
     if (legalMoveCount == 0) {
-        if (Referee::IsInCheck(board, board.whiteToMove())) score = -MATE + depthFromRoot;
+        if (Referee::IsInCheck(board, board.whiteToMove())) score = -MATE_VALUE + depthFromRoot;
         else score = 0;
     } else score = alpha;
 
@@ -347,7 +347,7 @@ SearchFlag Searcher::Quiescence(int alpha, const int beta, const int depthFromRo
 
     int finalScore;
     if (isInCheck && !hasLegalMove)
-        finalScore = -MATE + depthFromRoot;
+        finalScore = -MATE_VALUE + depthFromRoot;
     else finalScore = alpha;
 
     controller_->transpositionTable().Store(board.getHash(), bestMoveInNode, EncodeMateScore(finalScore, depthFromRoot),

@@ -56,8 +56,13 @@ void SearchController::onDepthComplete(const SearchInfo& info) const{
     const auto te = timer_.elapsedMs();
     const auto elapsed = te < 1 ? 1 : te; // clamp to 1 to avoid div by 0
 
+    std::string mateScore = "score "
+                            + (isMateScore(info.bestScore)
+                                   ? ("mate " + toMateText(info.bestScore))
+                                   : ("cp " + std::to_string(info.bestScore)));
+
     std::cout
-            << "info depth " << info.depth << " multipv 1 " << "score cp " << info.bestScore << " nodes "
+            << "info depth " << info.depth << " multipv 1 " << mateScore << " nodes "
             << info.stats.nodes << " nps " << static_cast<int>(info.stats.nodes / elapsed * 1000.0) << " time " <<
             elapsed
             << " pv " << info.pv << std::endl;

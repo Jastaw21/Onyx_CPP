@@ -310,34 +310,28 @@ int Evaluator::PassedPawnScore(const bool forWhite, const MaterialRecord& whiteM
 
     while (relevantPawns) {
 
-        auto possFiles = 0;
-        auto validFiles = 0;
-
         const auto passedPawnSquare = static_cast<Square>(std::countr_zero(relevantPawns));
         const auto raf = squareToRankAndFile(passedPawnSquare);
+        bool isPassed = true;
+
         // check file left
         if (raf.file > 0) {
-            possFiles++;
+
             const auto leftSquare = passedPawnSquare - 1; // (left from white's perspective
-            const int fl = countOccupantsForward(forWhite, leftSquare,pawnMask);
-            if (fl == 0) validFiles++;
+            if (countOccupantsForward(forWhite, leftSquare,pawnMask) > 0) isPassed = false;
 
         }
         // check same file
-        possFiles++;
-        const int fc = countOccupantsForward(forWhite, passedPawnSquare,pawnMask);
-        if (fc == 0) validFiles++;
+
+        if ( isPassed && countOccupantsForward(forWhite, passedPawnSquare,pawnMask) > 0) isPassed = false;
 
         // check file right
-        if (raf.file < 7) {
-            possFiles++;
-            const auto rightSquare = passedPawnSquare + 1; // (left from white's perspective
-            const int fr = countOccupantsForward(forWhite, rightSquare,pawnMask);
-            if (fr == 0) validFiles++;
+        if (isPassed && raf.file < 7) {
+            const auto rightSquare = passedPawnSquare + 1;
+            if (countOccupantsForward(forWhite, rightSquare,pawnMask) > 0) isPassed = false;
         }
 
-
-        if (possFiles == validFiles)
+        if (isPassed)
             totalPassedPawns += 1;
 
         relevantPawns &= relevantPawns -1;
